@@ -32,6 +32,411 @@
                     <i class="fa-solid fa-arrow-rotate-left text-amber-400"></i>
                     <span>تبديل المواعيد والسكاشن</span>
                 </h1>
-                <p class="text-indigo-100 text-xs sm:text-sm mt-0.5">قاعدة بيانات سحابية متزامنة - التبديل عبر الواتساب</p>
+                <p class="text-indigo-100 text-xs sm:text-sm mt-0.5">تبادل المواعيد بسهولة والتوافق التلقائي عبر الواتساب</p>
             </div>
-            <button onclick="scrollToForm()" class="lg:hidden bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold text-xs px-3
+            <button onclick="scrollToForm()" class="lg:hidden bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold text-xs px-3 py-2 rounded-lg shadow flex items-center gap-1.5 transition-transform active:scale-95">
+                <i class="fa-solid fa-plus"></i>
+                <span>طلب جديد</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8">
+        
+        <!-- Left Column: Registration Form -->
+        <section id="formSection" class="lg:col-span-5 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 h-fit lg:sticky lg:top-20">
+            <h2 class="text-base sm:text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-indigo-600"></i>تسجيل طلب تبديل
+                </span>
+                <span class="text-xs font-normal text-slate-400 lg:hidden">أدخل بياناتك بالأسفل</span>
+            </h2>
+
+            <form id="swapForm" onsubmit="handleFormSubmit(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">اسم الطالب / الطالبة <span class="text-rose-500">*</span></label>
+                    <input type="text" id="studentName" required placeholder="أدخل اسمك بالكامل" class="w-full px-3 py-2.5 sm:py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب / التليفون <span class="text-rose-500">*</span></label>
+                    <input type="tel" id="studentPhone" required placeholder="01012345678" class="w-full px-3 py-2.5 sm:py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-left transition-all" dir="ltr">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">ميعادك المسجل حالياً <span class="text-rose-500">*</span></label>
+                    <select id="currentSlot" required onchange="checkInstantMatch()" class="w-full px-3 py-2.5 sm:py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition-all">
+                        <option value="" disabled selected>اختر ميعادك الحالي...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">الميعاد الذي ترغب بالتبديل إليه <span class="text-rose-500">*</span></label>
+                    <select id="desiredSlot" required onchange="checkInstantMatch()" class="w-full px-3 py-2.5 sm:py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition-all">
+                        <option value="" disabled selected>اختر الميعاد المطلوب...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات إضافية (اختياري)</label>
+                    <textarea id="notes" rows="2" placeholder="أين تريد التجمع؟ أو أي شروط أخرى..." class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"></textarea>
+                </div>
+
+                <!-- Instant Live Match Banner -->
+                <div id="instantMatchBox" class="hidden p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-900 text-xs leading-relaxed animate-pulse">
+                    <div class="font-bold flex items-center gap-1 text-emerald-700 mb-1">
+                        <i class="fa-solid fa-bolt text-amber-500"></i> يوجد طالب متوافق معك حالياً!
+                    </div>
+                    <div id="instantMatchDetails"></div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full py-3 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-xl transition-all text-sm shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> نشر طلب التبديل
+                </button>
+            </form>
+        </section>
+
+        <!-- Right Column: Matches & All Requests -->
+        <section class="lg:col-span-7 space-y-4 sm:space-y-6">
+            
+            <!-- Smart Auto-Matches Container -->
+            <div id="smartMatchesContainer" class="hidden space-y-3">
+                <h3 class="text-sm sm:text-base font-bold text-emerald-900 flex items-center gap-2 bg-emerald-100/80 p-3 rounded-2xl border border-emerald-300">
+                    <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i> فرص التبديل المتوافقة أوتوماتيكياً
+                </h3>
+                <div id="smartMatchesList" class="space-y-3"></div>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-indigo-600"></i> جميع الطلبات المسجلة
+                    </h2>
+                    <span id="requestsCount" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full">0 طلب</span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="renderRequests()" placeholder="بحث باسم الطالب..." class="w-full pr-8 pl-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500">
+                    </div>
+                    <select id="filterSlot" onchange="renderRequests()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500 bg-white truncate">
+                        <option value="">جميع المواعيد المسجلة</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Requests List -->
+            <div id="requestsList" class="space-y-3">
+                <div id="loadingState" class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-2">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-600"></i>
+                    <p class="font-semibold">جاري تحميل الطلبات...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 py-4 text-center text-xs mt-auto">
+        <p>نظام تبديل المواعيد والسكاشن الجامعية © 2026</p>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzWglB6uK7zsJI4ZJ4YClw_fVhoVOr5mUNhqcU1E5HhBcsacuyd7xuk225AjXrIz2A/exec";
+
+        const daysData = [
+            { dates: "(الاربعاء 21/10 والثلاثاء 27/10)" },
+            { dates: "(السبت 24/10 والاربعاء 28/10)" },
+            { dates: "(الاحد 25/10 والخميس 29/10)" },
+            { dates: "(الاثنين 26/10 والسبت 31/10)" }
+        ];
+
+        const times = ["7 ص", "8:30 ص", "10 ص", "12 م", "1:30 م", "3 م"];
+        const groups = ["A", "B"];
+
+        let availableSlots = [];
+        daysData.forEach(day => {
+            times.forEach(time => {
+                groups.forEach(group => {
+                    availableSlots.push(`${day.dates} - ${time} (مجموعة ${group})`);
+                });
+            });
+        });
+
+        let requests = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            populateDropdowns();
+            fetchRequests();
+        });
+
+        function populateDropdowns() {
+            const currentSelect = document.getElementById('currentSlot');
+            const desiredSelect = document.getElementById('desiredSlot');
+            const filterSelect = document.getElementById('filterSlot');
+
+            availableSlots.forEach(slot => {
+                currentSelect.appendChild(new Option(slot, slot));
+                desiredSelect.appendChild(new Option(slot, slot));
+                filterSelect.appendChild(new Option(slot, slot));
+            });
+        }
+
+        function scrollToForm() {
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('studentName').focus();
+        }
+
+        // Fetch Requests (Cloud with Local Fallback)
+        function fetchRequests() {
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        requests = data.reverse();
+                        localStorage.setItem('backup_requests', JSON.stringify(requests));
+                    } else {
+                        loadBackup();
+                    }
+                    renderRequests();
+                })
+                .catch(err => {
+                    console.warn('Cloud fetch failed, loading local backup:', err);
+                    loadBackup();
+                    renderRequests();
+                });
+        }
+
+        function loadBackup() {
+            requests = JSON.parse(localStorage.getItem('backup_requests')) || [];
+        }
+
+        // Handle Form Submit
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const name = document.getElementById('studentName').value.trim();
+            const phone = document.getElementById('studentPhone').value.trim();
+            const currentSlot = document.getElementById('currentSlot').value;
+            const desiredSlot = document.getElementById('desiredSlot').value;
+            const notes = document.getElementById('notes').value.trim();
+
+            if (currentSlot === desiredSlot) {
+                alert('عذراً، يجب اختيار ميعاد مختلف عن ميعادك الحالي للتبديل!');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري النشر...`;
+
+            const newReq = {
+                action: 'add',
+                id: Date.now().toString(),
+                name,
+                phone,
+                currentSlot,
+                desiredSlot,
+                notes,
+                createdAt: new Date().toISOString()
+            };
+
+            // Optimistic Local Add
+            requests.unshift(newReq);
+            localStorage.setItem('backup_requests', JSON.stringify(requests));
+            renderRequests();
+
+            // Send to Google Sheets (text/plain bypasses CORS issue)
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(newReq)
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Saved to cloud:', data);
+            })
+            .catch(err => {
+                console.warn('Saved locally, background cloud sync pending:', err);
+            })
+            .finally(() => {
+                document.getElementById('swapForm').reset();
+                document.getElementById('instantMatchBox').classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> نشر طلب التبديل`;
+                alert('تم تسجيل طلبك بنجاح!');
+            });
+        }
+
+        // Live Instant Match Checker
+        function checkInstantMatch() {
+            const current = document.getElementById('currentSlot').value;
+            const desired = document.getElementById('desiredSlot').value;
+            const box = document.getElementById('instantMatchBox');
+            const details = document.getElementById('instantMatchDetails');
+
+            if (!current || !desired || current === desired) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            const match = requests.find(r => r.currentSlot === desired && r.desiredSlot === current);
+
+            if (match) {
+                const waLink = generateWhatsAppLink(match.phone, match.name, current, desired);
+                details.innerHTML = `
+                    <p class="mb-2">الطالب/ة <strong>${escapeHtml(match.name)}</strong> يمتلك الميعاد المطلوب ويبحث عن ميعادك!</p>
+                    <a href="${waLink}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg text-xs">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> تواصل مع ${escapeHtml(match.name)} فوراً
+                    </a>
+                `;
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        function findSmartMatches() {
+            const directMatches = [];
+            for (let i = 0; i < requests.length; i++) {
+                for (let j = i + 1; j < requests.length; j++) {
+                    const reqA = requests[i];
+                    const reqB = requests[j];
+                    if (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot) {
+                        directMatches.push([reqA, reqB]);
+                    }
+                }
+            }
+            return directMatches;
+        }
+
+        function renderRequests() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterSlot = document.getElementById('filterSlot').value;
+            const container = document.getElementById('requestsList');
+            const countLabel = document.getElementById('requestsCount');
+
+            const smartContainer = document.getElementById('smartMatchesContainer');
+            const smartList = document.getElementById('smartMatchesList');
+            const directMatches = findSmartMatches();
+
+            if (directMatches.length > 0) {
+                smartContainer.classList.remove('hidden');
+                smartList.innerHTML = directMatches.map(([a, b]) => {
+                    const waA = generateWhatsAppLink(a.phone, a.name, b.currentSlot, b.desiredSlot);
+                    const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot);
+                    return `
+                        <div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 sm:p-4 rounded-2xl shadow-sm text-xs relative">
+                            <span class="absolute top-2.5 left-2.5 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">توافق مباشر 100%</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
+                                <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(a.name)}</div>
+                                        <div class="text-slate-600 text-[11px] leading-tight mb-2">معاه: <span class="font-semibold text-emerald-700">${escapeHtml(a.currentSlot)}</span></div>
+                                    </div>
+                                    <a href="${waA}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">
+                                        <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(a.name)}
+                                    </a>
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(b.name)}</div>
+                                        <div class="text-slate-600 text-[11px] leading-tight mb-2">معاه: <span class="font-semibold text-emerald-700">${escapeHtml(b.currentSlot)}</span></div>
+                                    </div>
+                                    <a href="${waB}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">
+                                        <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(b.name)}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                smartContainer.classList.add('hidden');
+            }
+
+            let filtered = requests.filter(req => {
+                const matchesName = req.name && req.name.toLowerCase().includes(searchTerm);
+                const matchesSlot = !filterSlot || req.currentSlot === filterSlot || req.desiredSlot === filterSlot;
+                return matchesName && matchesSlot;
+            });
+
+            countLabel.textContent = `${filtered.length} طلب`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
+                        <i class="fa-regular fa-folder-open text-3xl mb-1 text-slate-300"></i>
+                        <p class="font-semibold">لا توجد طلبات تبديل مسجلة حالياً.</p>
+                        <p class="text-[11px] text-slate-400">سجّل أول طلب من النموذج للبدء!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(req => {
+                const waLink = generateWhatsAppLink(req.phone, req.name, req.desiredSlot, req.currentSlot);
+                return `
+                    <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5 text-xs">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <span class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-graduate text-indigo-600"></i> ${escapeHtml(req.name)}
+                            </span>
+                            <button onclick="deleteRequest('${req.id}')" class="text-slate-400 hover:text-rose-600 p-1 text-xs" title="حذف الطلب">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div class="bg-rose-50/80 p-2.5 rounded-xl border border-rose-100">
+                                <span class="text-rose-700 font-bold block mb-0.5 text-[11px]"><i class="fa-solid fa-clock ml-1"></i>الميعاد الحالي:</span>
+                                <span class="text-slate-800 font-semibold leading-tight block text-xs">${escapeHtml(req.currentSlot)}</span>
+                            </div>
+                            <div class="bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-100">
+                                <span class="text-emerald-700 font-bold block mb-0.5 text-[11px]"><i class="fa-solid fa-bullseye ml-1"></i>الميعاد المطلوب:</span>
+                                <span class="text-slate-800 font-semibold leading-tight block text-xs">${escapeHtml(req.desiredSlot)}</span>
+                            </div>
+                        </div>
+
+                        ${req.notes ? `<p class="text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[11px]"><i class="fa-solid fa-circle-info ml-1 text-indigo-500"></i>${escapeHtml(req.notes)}</p>` : ''}
+
+                        <div class="pt-1">
+                            <a href="${waLink}" target="_blank" class="w-full inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold py-2.5 rounded-xl transition-colors shadow-sm text-xs">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> تواصل عبر الواتساب
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteRequest(id) {
+            if (confirm('هل أنت تأكد من رغبتك في حذف هذا الطلب؟')) {
+                requests = requests.filter(r => r.id !== id);
+                localStorage.setItem('backup_requests', JSON.stringify(requests));
+                renderRequests();
+
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'delete', id: id })
+                }).catch(err => console.warn('Background delete sync failed:', err));
+            }
+        }
+
+        function generateWhatsAppLink(phone, name, myCurrent, myDesired) {
+            let cleanPhone = phone ? phone.replace(/\D/g, '') : '';
+            if (cleanPhone.startsWith('01')) {
+                cleanPhone = '2' + cleanPhone;
+            }
+            const message = encodeURIComponent(`السلام عليكم يا ${name}، شفت طلبك على منصة تبديل المواعيد. أنا حابب أبدل معاك الميعاد (${myCurrent}) بميعادك (${myDesired}). هل يناسبك؟`);
+            return `https://wa.me/${cleanPhone}?text=${message}`;
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+    </script>
+</body>
+</html>
