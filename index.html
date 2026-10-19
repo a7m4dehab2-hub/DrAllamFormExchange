@@ -145,6 +145,7 @@
     <!-- Application Script -->
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzWglB6uK7zsJI4ZJ4YClw_fVhoVOr5mUNhqcU1E5HhBcsacuyd7xuk225AjXrIz2A/exec";
+        const SPREADSHEET_ID = "13xPGid5GO_RizTp-ODDu7uSkoGsnJgE27ZOiLrtpBho";
 
         const daysData = [
             { dates: "(الاربعاء 21/10 والثلاثاء 27/10)" },
@@ -189,41 +190,63 @@
             document.getElementById('studentName').focus();
         }
 
-        // Fetch Requests using JSONP to completely bypass CORS block
         function fetchRequests() {
-            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-            window[callbackName] = function(data) {
-                delete window[callbackName];
-                document.getElementById(scriptId)?.remove();
-                
-                if (Array.isArray(data)) {
-                    requests = data.reverse();
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+
+            fetch(csvUrl)
+                .then(res => res.text())
+                .then(csvText => {
+                    requests = parseCSV(csvText).reverse();
                     localStorage.setItem('backup_requests', JSON.stringify(requests));
-                } else {
-                    loadBackup();
+                    renderRequests();
+                })
+                .catch(err => {
+                    console.warn('Fallback to local backup:', err);
+                    requests = JSON.parse(localStorage.getItem('backup_requests')) || [];
+                    renderRequests();
+                });
+        }
+
+        function parseCSV(text) {
+            let lines = text.split('\n');
+            let result = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                let row = parseCSVRow(lines[i]);
+                if (row.length >= 6 && row[0]) {
+                    result.push({
+                        id: row[0],
+                        name: row[1],
+                        phone: row[2],
+                        currentSlot: row[3],
+                        desiredSlot: row[4],
+                        notes: row[5],
+                        createdAt: row[6] || ''
+                    });
                 }
-                renderRequests();
-            };
-
-            const scriptId = 'jsonp_script';
-            document.getElementById(scriptId)?.remove();
-
-            const script = document.createElement('script');
-            script.id = scriptId;
-            script.src = `${API_URL}?callback=${callbackName}`;
-            script.onerror = function() {
-                console.warn('Network error, loading local backup');
-                loadBackup();
-                renderRequests();
-            };
-            document.body.appendChild(script);
+            }
+            return result;
         }
 
-        function loadBackup() {
-            requests = JSON.parse(localStorage.getItem('backup_requests')) || [];
+        function parseCSVRow(rowString) {
+            let result = [];
+            let cur = '';
+            let inQuotes = false;
+            for (let i = 0; i < rowString.length; i++) {
+                let c = rowString[i];
+                if (c === '"') {
+                    inQuotes = !inQuotes;
+                } else if (c === ',' && !inQuotes) {
+                    result.push(cur.trim().replace(/^"|"$/g, ''));
+                    cur = '';
+                } else {
+                    cur += c;
+                }
+            }
+            result.push(cur.trim().replace(/^"|"$/g, ''));
+            return result;
         }
 
-        // Handle Form Submit
         function handleFormSubmit(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
@@ -252,29 +275,28 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Local optimistic update
             requests.unshift(newReq);
             localStorage.setItem('backup_requests', JSON.stringify(requests));
             renderRequests();
 
-            // Send to Google Sheets
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(newReq)
             })
-            .then(() => fetchRequests())
-            .catch(err => console.warn('Cloud sync background error:', err))
+            .then(() => {
+                setTimeout(fetchRequests, 1500);
+            })
+            .catch(err => console.warn('Cloud sync error:', err))
             .finally(() => {
                 document.getElementById('swapForm').reset();
                 document.getElementById('instantMatchBox').classList.add('hidden');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> نشر طلب التبديل`;
-                alert('تم تسجيل طلبك بنجاح!');
+                alert('تم تسجيل طلبك ونشره بنجاح!');
             });
         }
 
-        // Live Instant Match Checker
         function checkInstantMatch() {
             const current = document.getElementById('currentSlot').value;
             const desired = document.getElementById('desiredSlot').value;
