@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>منصة تبديل المواعيد الدراسية</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,97 +13,117 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Cairo', sans-serif; }
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar for better mobile UX */
+        select, input, textarea {
+            font-size: 16px !important; /* Prevents auto-zoom on iOS */
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
 
     <!-- Header -->
-    <header class="bg-indigo-700 text-white shadow-lg border-b border-indigo-800">
-        <div class="max-w-6xl mx-auto px-4 py-6 text-center">
-            <h1 class="text-3xl font-extrabold tracking-tight">
-                <i class="fa-solid fa-arrow-rotate-left text-amber-400 ml-2"></i>منصة تبديل المواعيد والسكاشن
-            </h1>
-            <p class="mt-2 text-indigo-100 text-sm md:text-base">تبادل المواعيد بسهولة مع زملائك والتوافق التلقائي عبر الواتساب</p>
+    <header class="bg-indigo-700 text-white shadow-md border-b border-indigo-800 sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 py-3 sm:py-5 flex items-center justify-between">
+            <div class="text-right">
+                <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-rotate-left text-amber-400"></i>
+                    <span>تبديل المواعيد والسكاشن</span>
+                </h1>
+                <p class="text-indigo-100 text-xs sm:text-sm mt-0.5">تبادل المواعيد بسهولة والتوافق التلقائي عبر الواتساب</p>
+            </div>
+            <button onclick="scrollToForm()" class="lg:hidden bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold text-xs px-3 py-2 rounded-lg shadow flex items-center gap-1.5 transition-transform active:scale-95">
+                <i class="fa-solid fa-plus"></i>
+                <span>طلب جديد</span>
+            </button>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8">
         
-        <!-- Left Column: Registration Form (5 cols) -->
-        <section class="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit sticky top-6">
-            <h2 class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center">
-                <i class="fa-solid fa-pen-to-square text-indigo-600 ml-2"></i>تسجيل طلب تبديل
+        <!-- Left Column: Registration Form (5 cols on desktop, top/collapsible on mobile) -->
+        <section id="formSection" class="lg:col-span-5 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 h-fit lg:sticky lg:top-20">
+            <h2 class="text-base sm:text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-indigo-600"></i>تسجيل طلب تبديل
+                </span>
+                <span class="text-xs font-normal text-slate-400 lg:hidden">أدخل بياناتك بالأسفل</span>
             </h2>
 
-            <form id="swapForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+            <form id="swapForm" onsubmit="handleFormSubmit(event)" class="space-y-3.5">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">اسم الطالب / الطالبة <span class="text-rose-500">*</span></label>
-                    <input type="text" id="studentName" required placeholder="أدخل اسمك بالكامل" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    <input type="text" id="studentName" required placeholder="أدخل اسمك بالكامل" class="w-full px-3 py-2.5 sm:py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب / التليفون <span class="text-rose-500">*</span></label>
-                    <input type="tel" id="studentPhone" required placeholder="مثال: 01012345678" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-left" dir="ltr">
+                    <input type="tel" id="studentPhone" required placeholder="01012345678" class="w-full px-3 py-2.5 sm:py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-left transition-all" dir="ltr">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">ميعادك المسجل حالياً <span class="text-rose-500">*</span></label>
-                    <select id="currentSlot" required onchange="checkInstantMatch()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white">
+                    <select id="currentSlot" required onchange="checkInstantMatch()" class="w-full px-3 py-2.5 sm:py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition-all">
                         <option value="" disabled selected>اختر ميعادك الحالي...</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">الميعاد الذي ترغب بالتبديل إليه <span class="text-rose-500">*</span></label>
-                    <select id="desiredSlot" required onchange="checkInstantMatch()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white">
+                    <select id="desiredSlot" required onchange="checkInstantMatch()" class="w-full px-3 py-2.5 sm:py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition-all">
                         <option value="" disabled selected>اختر الميعاد المطلوب...</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات إضافية (اختياري)</label>
-                    <textarea id="notes" rows="2" placeholder="أين تريد التجمع؟ أو أي شروط أخرى..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
+                    <textarea id="notes" rows="2" placeholder="أين تريد التجمع؟ أو أي شروط أخرى..." class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"></textarea>
                 </div>
 
                 <!-- Instant Live Match Banner -->
-                <div id="instantMatchBox" class="hidden p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-xs leading-relaxed">
+                <div id="instantMatchBox" class="hidden p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-900 text-xs leading-relaxed animate-pulse">
                     <div class="font-bold flex items-center gap-1 text-emerald-700 mb-1">
                         <i class="fa-solid fa-bolt text-amber-500"></i> يوجد طالب متوافق معك حالياً!
                     </div>
                     <div id="instantMatchDetails"></div>
                 </div>
 
-                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors text-sm shadow-sm flex items-center justify-center gap-2">
+                <button type="submit" class="w-full py-3 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-xl transition-all text-sm shadow-md flex items-center justify-center gap-2">
                     <i class="fa-solid fa-paper-plane"></i> نشر طلب التبديل
                 </button>
             </form>
         </section>
 
         <!-- Right Column: Matches & All Requests (7 cols) -->
-        <section class="lg:col-span-7 space-y-6">
+        <section class="lg:col-span-7 space-y-4 sm:space-y-6">
             
             <!-- Smart Auto-Matches Container -->
             <div id="smartMatchesContainer" class="hidden space-y-3">
-                <h3 class="text-base font-bold text-emerald-800 flex items-center gap-2 bg-emerald-100/60 p-3 rounded-xl border border-emerald-200">
+                <h3 class="text-sm sm:text-base font-bold text-emerald-900 flex items-center gap-2 bg-emerald-100/80 p-3 rounded-2xl border border-emerald-300">
                     <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i> فرص التبديل المتوافقة أوتوماتيكياً
                 </h3>
                 <div id="smartMatchesList" class="space-y-3"></div>
             </div>
 
             <!-- Search & Filters -->
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-list-ul text-indigo-600"></i> جميع الطلبات المسجلة
                     </h2>
-                    <span id="requestsCount" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">0 طلب</span>
+                    <span id="requestsCount" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full">0 طلب</span>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <input type="text" id="searchInput" oninput="renderRequests()" placeholder="بحث باسم الطالب..." class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-md outline-none focus:border-indigo-500">
-                    <select id="filterSlot" onchange="renderRequests()" class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-md outline-none focus:border-indigo-500 bg-white">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="renderRequests()" placeholder="بحث باسم الطالب..." class="w-full pr-8 pl-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500">
+                    </div>
+                    <select id="filterSlot" onchange="renderRequests()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500 bg-white truncate">
                         <option value="">جميع المواعيد المسجلة</option>
                     </select>
                 </div>
@@ -142,7 +162,7 @@
             });
         });
 
-        // Initialize with empty array (No demo/example entries)
+        // Initialize with empty array
         let requests = JSON.parse(localStorage.getItem('swap_requests')) || [];
 
         // Initialize Options & UI
@@ -161,6 +181,11 @@
                 desiredSelect.appendChild(new Option(slot, slot));
                 filterSelect.appendChild(new Option(slot, slot));
             });
+        }
+
+        function scrollToForm() {
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('studentName').focus();
         }
 
         // Save & Submit Handlers
@@ -219,9 +244,9 @@
             if (match) {
                 const waLink = generateWhatsAppLink(match.phone, match.name, current, desired);
                 details.innerHTML = `
-                    الطالب/ة <strong>${escapeHtml(match.name)}</strong> يمتلك الميعاد المطلوب ويبحث عن ميعادك!
-                    <a href="${waLink}" target="_blank" class="mt-2 inline-flex items-center gap-1.5 bg-emerald-600 text-white font-bold px-3 py-1 rounded-md hover:bg-emerald-700 transition-colors text-xs">
-                        <i class="fa-brands fa-whatsapp"></i> تواصل مع ${escapeHtml(match.name)} فوراً
+                    <p class="mb-2">الطالب/ة <strong>${escapeHtml(match.name)}</strong> يمتلك الميعاد المطلوب ويبحث عن ميعادك!</p>
+                    <a href="${waLink}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-emerald-600 active:bg-emerald-700 text-white font-bold px-3 py-2 rounded-lg transition-colors text-xs shadow-sm">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> تواصل مع ${escapeHtml(match.name)} فوراً
                     </a>
                 `;
                 box.classList.remove('hidden');
@@ -266,20 +291,24 @@
                     const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot);
 
                     return `
-                        <div class="bg-emerald-50 border-2 border-emerald-300 p-4 rounded-xl shadow-sm text-xs relative">
-                            <span class="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">توافق مباشر 100%</span>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
-                                <div class="bg-white p-2.5 rounded-lg border border-emerald-200">
-                                    <div class="font-bold text-slate-800 text-sm mb-1">${escapeHtml(a.name)}</div>
-                                    <div class="text-slate-600">معاه: <span class="font-semibold text-emerald-700">${escapeHtml(a.currentSlot)}</span></div>
-                                    <a href="${waA}" target="_blank" class="mt-2 inline-flex items-center gap-1 bg-emerald-600 text-white font-bold px-2.5 py-1 rounded hover:bg-emerald-700 text-[11px]">
+                        <div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 sm:p-4 rounded-2xl shadow-sm text-xs relative">
+                            <span class="absolute top-2.5 left-2.5 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">توافق مباشر 100%</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
+                                <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(a.name)}</div>
+                                        <div class="text-slate-600 text-[11px] leading-tight mb-2">معاه: <span class="font-semibold text-emerald-700">${escapeHtml(a.currentSlot)}</span></div>
+                                    </div>
+                                    <a href="${waA}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 active:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">
                                         <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(a.name)}
                                     </a>
                                 </div>
-                                <div class="bg-white p-2.5 rounded-lg border border-emerald-200">
-                                    <div class="font-bold text-slate-800 text-sm mb-1">${escapeHtml(b.name)}</div>
-                                    <div class="text-slate-600">معاه: <span class="font-semibold text-emerald-700">${escapeHtml(b.currentSlot)}</span></div>
-                                    <a href="${waB}" target="_blank" class="mt-2 inline-flex items-center gap-1 bg-emerald-600 text-white font-bold px-2.5 py-1 rounded hover:bg-emerald-700 text-[11px]">
+                                <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(b.name)}</div>
+                                        <div class="text-slate-600 text-[11px] leading-tight mb-2">معاه: <span class="font-semibold text-emerald-700">${escapeHtml(b.currentSlot)}</span></div>
+                                    </div>
+                                    <a href="${waB}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 active:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">
                                         <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(b.name)}
                                     </a>
                                 </div>
@@ -302,9 +331,10 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white p-8 rounded-xl text-center text-slate-400 border border-slate-200 text-xs">
-                        <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
-                        <p>لا توجد طلبات تبديل مسجلة حالياً.</p>
+                    <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
+                        <i class="fa-regular fa-folder-open text-3xl mb-1 text-slate-300"></i>
+                        <p class="font-semibold">لا توجد طلبات تبديل مسجلة حالياً.</p>
+                        <p class="text-[11px] text-slate-400">كن أول من يسجل طلبه من النموذج أعلاه!</p>
                     </div>
                 `;
                 return;
@@ -313,31 +343,31 @@
             container.innerHTML = filtered.map(req => {
                 const waLink = generateWhatsAppLink(req.phone, req.name, req.desiredSlot, req.currentSlot);
                 return `
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2 text-xs">
+                    <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5 text-xs">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                            <span class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                            <span class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-user-graduate text-indigo-600"></i> ${escapeHtml(req.name)}
                             </span>
-                            <button onclick="deleteRequest('${req.id}')" class="text-slate-400 hover:text-rose-600 text-xs" title="حذف الطلب">
+                            <button onclick="deleteRequest('${req.id}')" class="text-slate-400 hover:text-rose-600 p-1 text-xs" title="حذف الطلب">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 my-1">
-                            <div class="bg-rose-50/70 p-2 rounded-lg border border-rose-100">
-                                <span class="text-rose-600 font-bold block mb-0.5"><i class="fa-solid fa-clock ml-1"></i>الميعاد الحالي:</span>
-                                <span class="text-slate-700 font-semibold">${escapeHtml(req.currentSlot)}</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div class="bg-rose-50/80 p-2.5 rounded-xl border border-rose-100">
+                                <span class="text-rose-700 font-bold block mb-0.5 text-[11px]"><i class="fa-solid fa-clock ml-1"></i>الميعاد الحالي:</span>
+                                <span class="text-slate-800 font-semibold leading-tight block text-xs">${escapeHtml(req.currentSlot)}</span>
                             </div>
-                            <div class="bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
-                                <span class="text-emerald-600 font-bold block mb-0.5"><i class="fa-solid fa-bullseye ml-1"></i>الميعاد المطلوب:</span>
-                                <span class="text-slate-700 font-semibold">${escapeHtml(req.desiredSlot)}</span>
+                            <div class="bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-100">
+                                <span class="text-emerald-700 font-bold block mb-0.5 text-[11px]"><i class="fa-solid fa-bullseye ml-1"></i>الميعاد المطلوب:</span>
+                                <span class="text-slate-800 font-semibold leading-tight block text-xs">${escapeHtml(req.desiredSlot)}</span>
                             </div>
                         </div>
 
-                        ${req.notes ? `<p class="text-slate-500 bg-slate-50 p-2 rounded border border-slate-100"><i class="fa-solid fa-circle-info ml-1 text-indigo-500"></i>${escapeHtml(req.notes)}</p>` : ''}
+                        ${req.notes ? `<p class="text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[11px]"><i class="fa-solid fa-circle-info ml-1 text-indigo-500"></i>${escapeHtml(req.notes)}</p>` : ''}
 
-                        <div class="pt-1 flex justify-end">
-                            <a href="${waLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
+                        <div class="pt-1">
+                            <a href="${waLink}" target="_blank" class="w-full inline-flex items-center justify-center gap-1.5 bg-emerald-600 active:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition-colors shadow-sm text-xs">
                                 <i class="fa-brands fa-whatsapp text-sm"></i> تواصل عبر الواتساب
                             </a>
                         </div>
