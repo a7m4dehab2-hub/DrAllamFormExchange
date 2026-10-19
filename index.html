@@ -297,6 +297,16 @@
             });
         }
 
+        // تحليل مطابقة المواعيد والمجموعات
+        function parseSlotInfo(slotStr) {
+            // مثال: "(الاربعاء 21/10 والثلاثاء 27/10) - 7 ص (مجموعة A)"
+            const groupMatch = slotStr.match(/مجموعة\s*([AB])/);
+            const group = groupMatch ? groupMatch[1] : '';
+            // الجزء الأساسي للميعاد بدون المجموعة للمقارنة
+            const baseTime = slotStr.replace(/\(مجموعة\s*[AB]\)/, '').trim();
+            return { baseTime, group };
+        }
+
         function checkInstantMatch() {
             const current = document.getElementById('currentSlot').value;
             const desired = document.getElementById('desiredSlot').value;
@@ -308,13 +318,28 @@
                 return;
             }
 
-            const match = requests.find(r => r.currentSlot === desired && r.desiredSlot === current);
+            const curInfo = parseSlotInfo(current);
+            const desInfo = parseSlotInfo(desired);
+
+            // البحث عن تبديل متطابق أو تبديل باختلاف مجموعة
+            const match = requests.find(r => {
+                const rCur = parseSlotInfo(r.currentSlot);
+                const rDes = parseSlotInfo(r.desiredSlot);
+                return rCur.baseTime === desInfo.baseTime && rDes.baseTime === curInfo.baseTime;
+            });
 
             if (match) {
-                const waLink = generateWhatsAppLink(match.phone, match.name, current, desired);
+                const mCur = parseSlotInfo(match.currentSlot);
+                const isGroupDiff = (mCur.group !== curInfo.group);
+                const waLink = generateWhatsAppLink(match.phone, match.name, current, desired, isGroupDiff, mCur.group, curInfo.group);
+                
+                let groupNotice = isGroupDiff ? 
+                    `<span class="text-amber-700 font-bold block mt-1"><i class="fa-solid fa-triangle-exclamation"></i> تنبيه: اختلاف المجموعات (طالب ${match.name} مجموعة ${mCur.group} وأنت مجموعة ${curInfo.group})</span>` : '';
+
                 details.innerHTML = `
-                    <p class="mb-2">الطالب/ة <strong>${escapeHtml(match.name)}</strong> يمتلك الميعاد المطلوب ويبحث عن ميعادك!</p>
-                    <a href="${waLink}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg text-xs">
+                    <p class="mb-1">الطالب/ة <strong>${escapeHtml(match.name)}</strong> متوافق معك في الموعد!</p>
+                    ${groupNotice}
+                    <a href="${waLink}" target="_blank" class="mt-2 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg text-xs">
                         <i class="fa-brands fa-whatsapp text-sm"></i> تواصل مع ${escapeHtml(match.name)} فوراً
                     </a>
                 `;
@@ -326,12 +351,26 @@
 
         function findSmartMatches() {
             const directMatches = [];
+            const checkedIds = new Set();
+
             for (let i = 0; i < requests.length; i++) {
                 for (let j = i + 1; j < requests.length; j++) {
                     const reqA = requests[i];
                     const reqB = requests[j];
-                    if (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot) {
-                        directMatches.push([reqA, reqB]);
+
+                    if (checkedIds.has(reqA.id) || checkedIds.has(reqB.id)) continue;
+
+                    const aCur = parseSlotInfo(reqA.currentSlot);
+                    const aDes = parseSlotInfo(reqA.desiredSlot);
+                    const bCur = parseSlotInfo(reqB.currentSlot);
+                    const bDes = parseSlotInfo(reqB.desiredSlot);
+
+                    // مطابقة المواعيد بغض النظر عن تطابق المجموعات تماماً أو اختلافها
+                    if (aCur.baseTime === bDes.baseTime && aDes.baseTime === bCur.baseTime) {
+                        const isGroupDiff = (aCur.group !== bDes.group || aDes.group !== bCur.group);
+                        directMatches.push({ reqA, reqB, isGroupDiff });
+                        checkedIds.add(reqA.id);
+                        checkedIds.add(reqB.id);
                     }
                 }
             }
@@ -350,12 +389,19 @@
 
             if (directMatches.length > 0) {
                 smartContainer.classList.remove('hidden');
-                smartList.innerHTML = directMatches.map(([a, b]) => {
-                    const waA = generateWhatsAppLink(a.phone, a.name, b.currentSlot, b.desiredSlot);
-                    const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot);
+                smartList.innerHTML = directMatches.map(({ reqA: a, reqB: b, isGroupDiff }) => {
+                    const aCur = parseSlotInfo(a.currentSlot);
+                    const bCur = parseSlotInfo(b.currentSlot);
+                    const waA = generateWhatsAppLink(a.phone, a.name, b.currentSlot, b.desiredSlot, isGroupDiff, bCur.group, aCur.group);
+                    const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot, isGroupDiff, aCur.group, bCur.group);
+
+                    let badgeHtml = isGroupDiff ? 
+                        `<span class="absolute top-2.5 left-2.5 bg-amber-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">ملاحظة: اختلاف المجموعات (A/B)</span>` :
+                        `<span class="absolute top-2.5 left-2.5 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">توافق مباشر 100%</span>`;
+
                     return `
-                        <div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 sm:p-4 rounded-2xl shadow-sm text-xs relative">
-                            <span class="absolute top-2.5 left-2.5 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">توافق مباشر 100%</span>
+                        <div class="bg-emerald-50 border-2 ${isGroupDiff ? 'border-amber-300 bg-amber-50/50' : 'border-emerald-300'} p-3.5 sm:p-4 rounded-2xl shadow-sm text-xs relative">
+                            ${badgeHtml}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
                                 <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
                                     <div>
@@ -452,12 +498,18 @@
             }
         }
 
-        function generateWhatsAppLink(phone, name, myCurrent, myDesired) {
+        function generateWhatsAppLink(phone, name, myCurrent, myDesired, isGroupDiff = false, group1 = '', group2 = '') {
             let cleanPhone = phone ? phone.replace(/\D/g, '') : '';
             if (cleanPhone.startsWith('01')) {
                 cleanPhone = '2' + cleanPhone;
             }
-            const message = encodeURIComponent(`السلام عليكم يا ${name}، شفت طلبك على منصة تبديل المواعيد. أنا حابب أبدل معاك الميعاد (${myCurrent}) بميعادك (${myDesired}). هل يناسبك؟`);
+            let msgText = `السلام عليكم يا ${name}، شفت طلبك على منصة تبديل المواعيد. أنا حابب أبدل معاك الميعاد (${myCurrent}) بميعادك (${myDesired}).`;
+            if (isGroupDiff) {
+                msgText += ` (ملحوظة: مجموعتك ${group1} ومجموعتي ${group2}، هل يناسبك التبديل؟)`;
+            } else {
+                msgText += ` هل يناسبك؟`;
+            }
+            const message = encodeURIComponent(msgText);
             return `https://wa.me/${cleanPhone}?text=${message}`;
         }
 
