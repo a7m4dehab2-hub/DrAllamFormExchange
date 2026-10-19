@@ -189,24 +189,34 @@
             document.getElementById('studentName').focus();
         }
 
-        // Fetch Requests (Cloud with Local Fallback)
+        // Fetch Requests using JSONP to completely bypass CORS block
         function fetchRequests() {
-            fetch(API_URL)
-                .then(res => res.json())
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        requests = data.reverse();
-                        localStorage.setItem('backup_requests', JSON.stringify(requests));
-                    } else {
-                        loadBackup();
-                    }
-                    renderRequests();
-                })
-                .catch(err => {
-                    console.warn('Cloud fetch failed, loading local backup:', err);
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.getElementById(scriptId)?.remove();
+                
+                if (Array.isArray(data)) {
+                    requests = data.reverse();
+                    localStorage.setItem('backup_requests', JSON.stringify(requests));
+                } else {
                     loadBackup();
-                    renderRequests();
-                });
+                }
+                renderRequests();
+            };
+
+            const scriptId = 'jsonp_script';
+            document.getElementById(scriptId)?.remove();
+
+            const script = document.createElement('script');
+            script.id = scriptId;
+            script.src = `${API_URL}?callback=${callbackName}`;
+            script.onerror = function() {
+                console.warn('Network error, loading local backup');
+                loadBackup();
+                renderRequests();
+            };
+            document.body.appendChild(script);
         }
 
         function loadBackup() {
@@ -242,24 +252,19 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Optimistic Local Add
+            // Local optimistic update
             requests.unshift(newReq);
             localStorage.setItem('backup_requests', JSON.stringify(requests));
             renderRequests();
 
-            // Send to Google Sheets (text/plain bypasses CORS issue)
+            // Send to Google Sheets
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(newReq)
             })
-            .then(res => res.json())
-            .then(data => {
-                console.log('Saved to cloud:', data);
-            })
-            .catch(err => {
-                console.warn('Saved locally, background cloud sync pending:', err);
-            })
+            .then(() => fetchRequests())
+            .catch(err => console.warn('Cloud sync background error:', err))
             .finally(() => {
                 document.getElementById('swapForm').reset();
                 document.getElementById('instantMatchBox').classList.add('hidden');
