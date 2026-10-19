@@ -502,16 +502,22 @@
                         <div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-xl shadow-sm text-xs relative">
                             <span class="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">توافق مباشر 100%</span>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                                <div class="bg-white p-2.5 rounded-lg border border-emerald-200">
-                                    <div class="font-bold text-slate-800 text-xs mb-1">${escapeHtml(a.name)}</div>
-                                    <div class="text-slate-600 text-[11px] mb-2">معاه: <span class="text-rose-700 font-semibold">${escapeHtml(a.currentSlot)}</span></div>
+                                <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-xs mb-1">${escapeHtml(a.name)}</div>
+                                        <div class="text-slate-600 text-[11px] mb-1">معاه: <span class="text-rose-700 font-semibold">${escapeHtml(a.currentSlot)}</span></div>
+                                        <div class="text-slate-600 text-[11px] mb-2">عايز: <span class="text-emerald-700 font-semibold">${escapeHtml(a.desiredSlot)}</span></div>
+                                    </div>
                                     <a href="${waA}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold px-2 py-1.5 rounded text-[11px]">
                                         <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(a.name)}
                                     </a>
                                 </div>
-                                <div class="bg-white p-2.5 rounded-lg border border-emerald-200">
-                                    <div class="font-bold text-slate-800 text-xs mb-1">${escapeHtml(b.name)}</div>
-                                    <div class="text-slate-600 text-[11px] mb-2">معاه: <span class="text-rose-700 font-semibold">${escapeHtml(b.currentSlot)}</span></div>
+                                <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-xs mb-1">${escapeHtml(b.name)}</div>
+                                        <div class="text-slate-600 text-[11px] mb-1">معاه: <span class="text-rose-700 font-semibold">${escapeHtml(b.currentSlot)}</span></div>
+                                        <div class="text-slate-600 text-[11px] mb-2">عايز: <span class="text-emerald-700 font-semibold">${escapeHtml(b.desiredSlot)}</span></div>
+                                    </div>
                                     <a href="${waB}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold px-2 py-1.5 rounded text-[11px]">
                                         <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(b.name)}
                                     </a>
