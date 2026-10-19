@@ -122,7 +122,7 @@
 
     <!-- Application Script -->
     <script>
-        // 1. Available Schedule Slots Data
+        // Available Schedule Slots Data
         const daysData = [
             { dates: "(الاربعاء 21/10 والثلاثاء 27/10)" },
             { dates: "(السبت 24/10 والاربعاء 28/10)" },
@@ -142,29 +142,8 @@
             });
         });
 
-        // Demo Initial Data
-        const demoRequests = [
-            {
-                id: '1',
-                name: 'محمد أحمد',
-                phone: '01012345678',
-                currentSlot: `${daysData[0].dates} - 7 ص (مجموعة A)`,
-                desiredSlot: `${daysData[0].dates} - 8:30 ص (مجموعة A)`,
-                notes: 'أفضل التبديل سريعا لحضور سكشن متتالي',
-                createdAt: new Date().toISOString()
-            },
-            {
-                id: '2',
-                name: 'سارة محمود',
-                phone: '01198765432',
-                currentSlot: `${daysData[0].dates} - 8:30 ص (مجموعة A)`,
-                desiredSlot: `${daysData[0].dates} - 7 ص (مجموعة A)`,
-                notes: '',
-                createdAt: new Date().toISOString()
-            }
-        ];
-
-        let requests = JSON.parse(localStorage.getItem('swap_requests')) || demoRequests;
+        // Initialize with empty array (No demo/example entries)
+        let requests = JSON.parse(localStorage.getItem('swap_requests')) || [];
 
         // Initialize Options & UI
         window.addEventListener('DOMContentLoaded', () => {
@@ -325,7 +304,7 @@
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-xl text-center text-slate-400 border border-slate-200 text-xs">
                         <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
-                        <p>لا توجد طلبات تبديل مسجلة تطابق بحثك حالياً.</p>
+                        <p>لا توجد طلبات تبديل مسجلة حالياً.</p>
                     </div>
                 `;
                 return;
