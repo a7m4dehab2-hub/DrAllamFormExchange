@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>منصة تبديل المواعيد الدراسية</title>
+    <title>تبديل مواعيد حصص د. علام</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -30,7 +30,7 @@
             <div class="text-right">
                 <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-arrow-rotate-left text-amber-400"></i>
-                    <span>تبديل المواعيد والسكاشن</span>
+                    <span>تبديل مواعيد حصص د. علام</span>
                 </h1>
                 <p class="text-indigo-100 text-xs sm:text-sm mt-0.5">تبادل المواعيد بسهولة والتوافق التلقائي عبر الواتساب</p>
             </div>
@@ -297,12 +297,9 @@
             });
         }
 
-        // تحليل مطابقة المواعيد والمجموعات
         function parseSlotInfo(slotStr) {
-            // مثال: "(الاربعاء 21/10 والثلاثاء 27/10) - 7 ص (مجموعة A)"
             const groupMatch = slotStr.match(/مجموعة\s*([AB])/);
             const group = groupMatch ? groupMatch[1] : '';
-            // الجزء الأساسي للميعاد بدون المجموعة للمقارنة
             const baseTime = slotStr.replace(/\(مجموعة\s*[AB]\)/, '').trim();
             return { baseTime, group };
         }
@@ -321,7 +318,6 @@
             const curInfo = parseSlotInfo(current);
             const desInfo = parseSlotInfo(desired);
 
-            // البحث عن تبديل متطابق أو تبديل باختلاف مجموعة
             const match = requests.find(r => {
                 const rCur = parseSlotInfo(r.currentSlot);
                 const rDes = parseSlotInfo(r.desiredSlot);
@@ -365,7 +361,6 @@
                     const bCur = parseSlotInfo(reqB.currentSlot);
                     const bDes = parseSlotInfo(reqB.desiredSlot);
 
-                    // مطابقة المواعيد بغض النظر عن تطابق المجموعات تماماً أو اختلافها
                     if (aCur.baseTime === bDes.baseTime && aDes.baseTime === bCur.baseTime) {
                         const isGroupDiff = (aCur.group !== bDes.group || aDes.group !== bCur.group);
                         directMatches.push({ reqA, reqB, isGroupDiff });
@@ -456,9 +451,6 @@
                             <span class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-user-graduate text-indigo-600"></i> ${escapeHtml(req.name)}
                             </span>
-                            <button onclick="deleteRequest('${req.id}')" class="text-slate-400 hover:text-rose-600 p-1 text-xs" title="حذف الطلب">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -482,20 +474,6 @@
                     </div>
                 `;
             }).join('');
-        }
-
-        function deleteRequest(id) {
-            if (confirm('هل أنت تأكد من رغبتك في حذف هذا الطلب؟')) {
-                requests = requests.filter(r => r.id !== id);
-                localStorage.setItem('backup_requests', JSON.stringify(requests));
-                renderRequests();
-
-                fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'delete', id: id })
-                }).catch(err => console.warn('Background delete sync failed:', err));
-            }
         }
 
         function generateWhatsAppLink(phone, name, myCurrent, myDesired, isGroupDiff = false, group1 = '', group2 = '') {
