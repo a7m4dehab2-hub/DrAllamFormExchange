@@ -108,7 +108,7 @@
                 </button>
                 <button onclick="switchTab('nearest')" id="tabNearestBtn" class="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-                    <span>اقتراحات التبديل المتقاطع 💡</span>
+                    <span>اقترحات التبديل المتقاطع 💡</span>
                 </button>
             </div>
 
@@ -157,7 +157,7 @@
                     <div class="font-bold flex items-center gap-1.5 text-amber-800 text-sm mb-1">
                         <i class="fa-solid fa-lightbulb text-amber-500"></i> عن التبديل المتقاطع (Cross Swap)
                     </div>
-                    اقتراح يعتمد كلياً على تكامل الرغبات والمواعيد الحالية بين طالبين بشكل متبادل وقريب.
+                    اقتراح يعتمد كلياً على تكامل الرغبات والمواعيد الحالية بين طالبين بشكل متبادل وقريب جداً.
                 </div>
                 <div id="nearestMatchesList" class="space-y-3">
                     <!-- Dynamically populated -->
@@ -375,7 +375,7 @@
                 const rDes = getSlotIndex(r.desiredSlot);
                 const myCur = getSlotIndex(current);
                 const myDes = getSlotIndex(desired);
-                return Math.abs(myDes - rCur) <= 2 && Math.abs(rDes - myCur) <= 2;
+                return Math.abs(myDes - rCur) <= 1 && Math.abs(rDes - myCur) <= 1;
             });
 
             if (nearestMatch) {
@@ -452,13 +452,13 @@
                     const isExact = (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot);
 
                     // 2. معيار التبديل المتقاطع النقي الصارم (Cross Swap):
-                    // رغبة الطالبة الأولى قريبة جداً من ميعاد الطالبة الثانية الحالي، والعكس صحيح
+                    // رغبة الطالبة الأولى قريبة جداً من ميعاد الطالبة الثانية الحالي (بفارق خطوة واحدة أو صفر)، والعكس صحيح
                     const crossDiff1 = Math.abs(idxADesired - idxBCurrent);
                     const crossDiff2 = Math.abs(idxBDesired - idxACurrent);
 
-                    const isLogicalCrossSwap = (crossDiff1 <= 2 && crossDiff2 <= 2) && !isExact;
+                    const isStrictCrossSwap = (crossDiff1 <= 1 && crossDiff2 <= 1) && !isExact;
 
-                    if (isExact || isLogicalCrossSwap) {
+                    if (isExact || isStrictCrossSwap) {
                         matchesPairs.push({
                             type: isExact ? 'exact' : 'cross',
                             score: crossDiff1 + crossDiff2,
