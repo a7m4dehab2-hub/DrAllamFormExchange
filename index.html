@@ -108,7 +108,7 @@
                 </button>
                 <button onclick="switchTab('nearest')" id="tabNearestBtn" class="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-                    <span>اقتراحات التبديل القريب 💡</span>
+                    <span>اقتراحات التبديل المتقاطع 💡</span>
                 </button>
             </div>
 
@@ -155,9 +155,9 @@
             <div id="tabNearestContent" class="hidden space-y-4">
                 <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 leading-relaxed">
                     <div class="font-bold flex items-center gap-1.5 text-amber-800 text-sm mb-1">
-                        <i class="fa-solid fa-lightbulb text-amber-500"></i> عن التبديل القريب والمتقاطع
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> عن التبديل المتقاطع (Cross Swap)
                     </div>
-                    اقتراح لتبديل المواعيد القريبة من بعض لتسهيل الوصول لحل مرن
+                    اقتراح يعتمد كلياً على تكامل الرغبات والمواعيد الحالية بين طالبين بشكل متبادل وقريب.
                 </div>
                 <div id="nearestMatchesList" class="space-y-3">
                     <!-- Dynamically populated -->
@@ -370,12 +370,18 @@
                 return;
             }
 
-            const nearestMatch = requests.find(r => r.currentSlot === desired || r.desiredSlot === current);
+            const nearestMatch = requests.find(r => {
+                const rCur = getSlotIndex(r.currentSlot);
+                const rDes = getSlotIndex(r.desiredSlot);
+                const myCur = getSlotIndex(current);
+                const myDes = getSlotIndex(desired);
+                return Math.abs(myDes - rCur) <= 2 && Math.abs(rDes - myCur) <= 2;
+            });
 
             if (nearestMatch) {
                 const waLink = generateWhatsAppLink(nearestMatch.phone, nearestMatch.name, current, desired);
                 details.innerHTML = `
-                    <p class="mb-2 font-bold text-amber-800">💡 وجدنا طلباً قريباً لـ ${escapeHtml(nearestMatch.name)} (راجع تبويب الاقتراحات القريبة):</p>
+                    <p class="mb-2 font-bold text-amber-800">💡 وجدنا تبديلاً متقاطعاً مع ${escapeHtml(nearestMatch.name)} (راجع تبويب الاقتراحات):</p>
                     <a href="${waLink}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-amber-600 text-white font-bold px-3 py-2 rounded-lg text-xs">
                         <i class="fa-brands fa-whatsapp text-sm"></i> تواصل مع ${escapeHtml(nearestMatch.name)} للتنسيق
                     </a>
@@ -435,11 +441,6 @@
                     const reqB = requests[j];
                     if (processedIds.has(reqA.id) || processedIds.has(reqB.id)) continue;
 
-                    // الشروط الصارمة جداً لمنع أي تشابه غير منطقي:
-                    // 1. ممنوع أن يطلبان نفس الميعاد المطلوب
-                    // 2. ممنوع أن يكون معهما نفس الميعاد الحالي تماماً
-                    if (reqA.desiredSlot === reqB.desiredSlot || reqA.currentSlot === reqB.currentSlot) continue;
-
                     const idxACurrent = getSlotIndex(reqA.currentSlot);
                     const idxADesired = getSlotIndex(reqA.desiredSlot);
                     const idxBCurrent = getSlotIndex(reqB.currentSlot);
@@ -447,18 +448,20 @@
 
                     if (idxACurrent === -1 || idxADesired === -1 || idxBCurrent === -1 || idxBDesired === -1) continue;
 
+                    // 1. التطابق التام 100%
                     const isExact = (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot);
 
-                    const diffCurrent = Math.abs(idxACurrent - idxBCurrent);
-                    const diffDesired = Math.abs(idxADesired - idxBDesired);
-                    
-                    // تقارب زمني صارم وضيق جداً لمنع أي ربط عشوائي
-                    const isCloseProximity = (diffCurrent <= 2 && diffDesired <= 2) && !isExact;
+                    // 2. معيار التبديل المتقاطع النقي الصارم (Cross Swap):
+                    // رغبة الطالبة الأولى قريبة جداً من ميعاد الطالبة الثانية الحالي، والعكس صحيح
+                    const crossDiff1 = Math.abs(idxADesired - idxBCurrent);
+                    const crossDiff2 = Math.abs(idxBDesired - idxACurrent);
 
-                    if (isExact || isCloseProximity) {
+                    const isLogicalCrossSwap = (crossDiff1 <= 2 && crossDiff2 <= 2) && !isExact;
+
+                    if (isExact || isLogicalCrossSwap) {
                         matchesPairs.push({
-                            type: isExact ? 'exact' : 'proximity',
-                            score: diffCurrent + diffDesired,
+                            type: isExact ? 'exact' : 'cross',
+                            score: crossDiff1 + crossDiff2,
                             a: reqA,
                             b: reqB
                         });
@@ -474,8 +477,8 @@
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
                         <i class="fa-solid fa-cloud-moon text-3xl mb-1 text-slate-300"></i>
-                        <p class="font-semibold">لا توجد اقتراحات قريبة حالياً.</p>
-                        <p class="text-[11px] text-slate-400">ستظهر المقترحات المتقاربة زمنياً هنا فور تسجيل الطلبات!</p>
+                        <p class="font-semibold">لا توجد اقتراحات لتبديل متقاطع حالياً.</p>
+                        <p class="text-[11px] text-slate-400">ستظهر مقترحات التبديل المتقاطع هنا فور تكامل رغبات الطلبة!</p>
                     </div>
                 `;
                 return;
@@ -485,7 +488,7 @@
                 const a = match.a;
                 const b = match.b;
                 const isExact = match.type === 'exact';
-                const badgeText = isExact ? 'توافق مباشر 100%' : '💡 تقارب زمني ممتاز';
+                const badgeText = isExact ? 'توافق مباشر 100%' : '💡 تبديل متقاطع ممتاز';
                 const badgeColor = isExact ? 'bg-emerald-600' : 'bg-amber-600';
                 const cardBg = isExact ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50/80 border-amber-300';
 
