@@ -157,8 +157,7 @@
                     <div class="font-bold flex items-center gap-1.5 text-amber-800 text-sm mb-1">
                         <i class="fa-solid fa-lightbulb text-amber-500"></i> عن التبديل القريب والمتقاطع
                     </div>
-                   اقتراح لتبديل المواعيد القريبة من بعض لتسهيل الوصول لحل مرن
-            
+                    اقتراح لتبديل المواعيد القريبة من بعض لتسهيل الوصول لحل مرن
                 </div>
                 <div id="nearestMatchesList" class="space-y-3">
                     <!-- Dynamically populated -->
@@ -389,138 +388,132 @@
 
         function renderAll() {
             renderRequests();
-          // دالة مساعدة لتحويل نص الميعاد إلى رقم تسلسلي زمني دقيق للمقارنة والتقارب
-function getSlotIndex(slotString) {
-    if (!slotString) return -1;
-    // تحديد رقم اليوم (من الأيام الأربعة)
-    const dayPatterns = [
-        "الاربعاء 21/10 والثلاثاء 27/10",
-        "السبت 24/10 والاربعاء 28/10",
-        "الاحد 25/10 والخميس 29/10",
-        "الاثنين 26/10 والسبت 31/10"
-    ];
-    
-    let dayIndex = -1;
-    for (let i = 0; i < dayPatterns.length; i++) {
-        if (slotString.includes(dayPatterns[i])) {
-            dayIndex = i;
-            break;
+            renderNearestMatches();
         }
-    }
-    if (dayIndex === -1) return -1;
 
-    // تحديد رقم التوقيت (الساعة)
-    const timesList = ["7 ص", "8:30 ص", "10 ص", "12 م", "1:30 م", "3 م"];
-    let timeIndex = -1;
-    for (let j = 0; j < timesList.length; j++) {
-        if (slotString.includes(timesList[j])) {
-            timeIndex = j;
-            break;
-        }
-    }
-    if (timeIndex === -1) return -1;
-
-    // المعادلة الحسابية للترتيب الزمني الكلي (كل يوم يحتوي على 6 أوقات * مجموعتين = 12 خانة)
-    const groupOffset = slotString.includes("مجموعة B") ? 1 : 0;
-    return (dayIndex * 12) + (timeIndex * 2) + groupOffset;
-}
-
-function renderNearestMatches() {
-    const container = document.getElementById('nearestMatchesList');
-    const matchesPairs = [];
-    const processedIds = new Set();
-
-    // فحص كل طالبين لتحديد مدى "التقارب الزمني" بين رغباتهم
-    for (let i = 0; i < requests.length; i++) {
-        for (let j = i + 1; j < requests.length; j++) {
-            const reqA = requests[i];
-            const reqB = requests[j];
-            if (processedIds.has(reqA.id) || processedIds.has(reqB.id)) continue;
-
-            const idxACurrent = getSlotIndex(reqA.currentSlot);
-            const idxADesired = getSlotIndex(reqA.desiredSlot);
-            const idxBCurrent = getSlotIndex(reqB.currentSlot);
-            const idxBDesired = getSlotIndex(reqB.desiredSlot);
-
-            if (idxACurrent === -1 || idxADesired === -1 || idxBCurrent === -1 || idxBDesired === -1) continue;
-
-            // حساب المسافة الزمنية: هل ميعاد A الحالي قريب من رغبة B، وميعاد B الحالي قريب من رغبة A؟
-            // شرط التقارب: ألا يزيد الفارق الزمني بين المواعيد المتقابلة عن خانات معينة (مثلاً خلال نفس الأيام أو فترات متقاربة جداً)
-            const diffA = Math.abs(idxACurrent - idxBDesired);
-            const diffB = Math.abs(idxBCurrent - idxADesired);
-
-            // إذا كان المجموعان أو الميعادان متقاربين زمنياً (مثلاً فارق بسيط في الساعات أو الأيام القريبة)
-            // التوافق التام يكون الفرق 0، والتقارب القوي يكون الفرق صغير (مثلاً <= 4 خطوات زمنية أي نفس اليوم أو يوم قريب)
-            const isExact = (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot);
-            const isCloseProximity = (diffA <= 4 && diffB <= 4); // تقارب زمني ذكي
-
-            if (isExact || isCloseProximity) {
-                matchesPairs.push({
-                    type: isExact ? 'exact' : 'proximity',
-                    score: diffA + diffB, // لترتيب الأقرب فالأقرب
-                    a: reqA,
-                    b: reqB
-                });
-                processedIds.add(reqA.id);
-                processedIds.add(reqB.id);
+        // دالة مساعدة لتحويل نص الميعاد إلى رقم تسلسلي زمني دقيق للمقارنة والتقارب
+        function getSlotIndex(slotString) {
+            if (!slotString) return -1;
+            const dayPatterns = [
+                "الاربعاء 21/10 والثلاثاء 27/10",
+                "السبت 24/10 والاربعاء 28/10",
+                "الاحد 25/10 والخميس 29/10",
+                "الاثنين 26/10 والسبت 31/10"
+            ];
+            
+            let dayIndex = -1;
+            for (let i = 0; i < dayPatterns.length; i++) {
+                if (slotString.includes(dayPatterns[i])) {
+                    dayIndex = i;
+                    break;
+                }
             }
+            if (dayIndex === -1) return -1;
+
+            const timesList = ["7 ص", "8:30 ص", "10 ص", "12 م", "1:30 م", "3 م"];
+            let timeIndex = -1;
+            for (let j = 0; j < timesList.length; j++) {
+                if (slotString.includes(timesList[j])) {
+                    timeIndex = j;
+                    break;
+                }
+            }
+            if (timeIndex === -1) return -1;
+
+            const groupOffset = slotString.includes("مجموعة B") ? 1 : 0;
+            return (dayIndex * 12) + (timeIndex * 2) + groupOffset;
         }
-    }
 
-    // ترتيب المقترحات بحيث الأقرب فالأقرب يظهر أولاً
-    matchesPairs.sort((x, y) => x.score - y.score);
+        function renderNearestMatches() {
+            const container = document.getElementById('nearestMatchesList');
+            const matchesPairs = [];
+            const processedIds = new Set();
 
-    if (matchesPairs.length === 0) {
-        container.innerHTML = `
-            <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
-                <i class="fa-solid fa-cloud-moon text-3xl mb-1 text-slate-300"></i>
-                <p class="font-semibold">لا توجد اقتراحات قريبة حالياً.</p>
-                <p class="text-[11px] text-slate-400">ستظهر المقترحات المتقاربة زمنياً هنا فور تسجيل الطلبات!</p>
-            </div>
-        `;
-        return;
-    }
+            for (let i = 0; i < requests.length; i++) {
+                for (let j = i + 1; j < requests.length; j++) {
+                    const reqA = requests[i];
+                    const reqB = requests[j];
+                    if (processedIds.has(reqA.id) || processedIds.has(reqB.id)) continue;
 
-    container.innerHTML = matchesPairs.map(match => {
-        const a = match.a;
-        const b = match.b;
-        const isExact = match.type === 'exact';
-        const badgeText = isExact ? 'توافق مباشر 100%' : '💡 تقارب زمني ممتاز';
-        const badgeColor = isExact ? 'bg-emerald-600' : 'bg-amber-600';
-        const cardBg = isExact ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50/80 border-amber-300';
+                    const idxACurrent = getSlotIndex(reqA.currentSlot);
+                    const idxADesired = getSlotIndex(reqA.desiredSlot);
+                    const idxBCurrent = getSlotIndex(reqB.currentSlot);
+                    const idxBDesired = getSlotIndex(reqB.desiredSlot);
 
-        const waA = generateWhatsAppLink(a.phone, a.name, b.currentSlot, b.desiredSlot);
-        const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot);
+                    if (idxACurrent === -1 || idxADesired === -1 || idxBCurrent === -1 || idxBDesired === -1) continue;
 
-        return `
-            <div class="${cardBg} border-2 p-3.5 sm:p-4 rounded-2xl shadow-sm text-xs relative">
-                <span class="absolute top-2.5 left-2.5 ${badgeColor} text-white px-2.5 py-0.5 rounded-full font-bold text-[10px] shadow-sm">${badgeText}</span>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between shadow-xs">
-                        <div>
-                            <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(a.name)}</div>
-                            <div class="text-slate-600 text-[11px] leading-tight mb-1">معاه: <span class="font-semibold text-rose-700">${escapeHtml(a.currentSlot)}</span></div>
-                            <div class="text-slate-600 text-[11px] leading-tight mb-2">عايز: <span class="font-semibold text-emerald-700">${escapeHtml(a.desiredSlot)}</span></div>
-                        </div>
-                        <a href="${waA}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all">
-                            <i class="fa-brands fa-whatsapp text-sm"></i> واتساب ${escapeHtml(a.name)}
-                        </a>
+                    const diffA = Math.abs(idxACurrent - idxBDesired);
+                    const diffB = Math.abs(idxBCurrent - idxADesired);
+
+                    const isExact = (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot);
+                    const isCloseProximity = (diffA <= 4 && diffB <= 4);
+
+                    if (isExact || isCloseProximity) {
+                        matchesPairs.push({
+                            type: isExact ? 'exact' : 'proximity',
+                            score: diffA + diffB,
+                            a: reqA,
+                            b: reqB
+                        });
+                        processedIds.add(reqA.id);
+                        processedIds.add(reqB.id);
+                    }
+                }
+            }
+
+            matchesPairs.sort((x, y) => x.score - y.score);
+
+            if (matchesPairs.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
+                        <i class="fa-solid fa-cloud-moon text-3xl mb-1 text-slate-300"></i>
+                        <p class="font-semibold">لا توجد اقتراحات قريبة حالياً.</p>
+                        <p class="text-[11px] text-slate-400">ستظهر المقترحات المتقاربة زمنياً هنا فور تسجيل الطلبات!</p>
                     </div>
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between shadow-xs">
-                        <div>
-                            <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(b.name)}</div>
-                            <div class="text-slate-600 text-[11px] leading-tight mb-1">معاه: <span class="font-semibold text-rose-700">${escapeHtml(b.currentSlot)}</span></div>
-                            <div class="text-slate-600 text-[11px] leading-tight mb-2">عايز: <span class="font-semibold text-emerald-700">${escapeHtml(b.desiredSlot)}</span></div>
+                `;
+                return;
+            }
+
+            container.innerHTML = matchesPairs.map(match => {
+                const a = match.a;
+                const b = match.b;
+                const isExact = match.type === 'exact';
+                const badgeText = isExact ? 'توافق مباشر 100%' : '💡 تقارب زمني ممتاز';
+                const badgeColor = isExact ? 'bg-emerald-600' : 'bg-amber-600';
+                const cardBg = isExact ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50/80 border-amber-300';
+
+                const waA = generateWhatsAppLink(a.phone, a.name, b.currentSlot, b.desiredSlot);
+                const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot);
+
+                return `
+                    <div class="${cardBg} border-2 p-3.5 sm:p-4 rounded-2xl shadow-sm text-xs relative">
+                        <span class="absolute top-2.5 left-2.5 ${badgeColor} text-white px-2.5 py-0.5 rounded-full font-bold text-[10px] shadow-sm">${badgeText}</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between shadow-xs">
+                                <div>
+                                    <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(a.name)}</div>
+                                    <div class="text-slate-600 text-[11px] leading-tight mb-1">معاه: <span class="font-semibold text-rose-700">${escapeHtml(a.currentSlot)}</span></div>
+                                    <div class="text-slate-600 text-[11px] leading-tight mb-2">عايز: <span class="font-semibold text-emerald-700">${escapeHtml(a.desiredSlot)}</span></div>
+                                </div>
+                                <a href="${waA}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> واتساب ${escapeHtml(a.name)}
+                                </a>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between shadow-xs">
+                                <div>
+                                    <div class="font-bold text-slate-800 text-xs sm:text-sm mb-1">${escapeHtml(b.name)}</div>
+                                    <div class="text-slate-600 text-[11px] leading-tight mb-1">معاه: <span class="font-semibold text-rose-700">${escapeHtml(b.currentSlot)}</span></div>
+                                    <div class="text-slate-600 text-[11px] leading-tight mb-2">عايز: <span class="font-semibold text-emerald-700">${escapeHtml(b.desiredSlot)}</span></div>
+                                </div>
+                                <a href="${waB}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> واتساب ${escapeHtml(b.name)}
+                                </a>
+                            </div>
                         </div>
-                        <a href="${waB}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all">
-                            <i class="fa-brands fa-whatsapp text-sm"></i> واتساب ${escapeHtml(b.name)}
-                        </a>
                     </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+                `;
+            }).join('');
+        }
 
         function renderRequests() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -603,7 +596,6 @@ function renderNearestMatches() {
                             <span class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-user-graduate text-indigo-600"></i> ${escapeHtml(req.name)}
                             </span>
-                           
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -629,20 +621,6 @@ function renderNearestMatches() {
             }).join('');
         }
 
-        function deleteRequest(id) {
-            if (confirm('هل أنت تأكد من رغبتك في حذف هذا الطلب؟')) {
-                requests = requests.filter(r => r.id !== id);
-                localStorage.setItem('backup_requests', JSON.stringify(requests));
-                renderAll();
-
-                fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'delete', id: id })
-                }).catch(err => console.warn('Background delete sync failed:', err));
-            }
-        }
-
         function generateWhatsAppLink(phone, name, myCurrent, myDesired) {
             let cleanPhone = phone ? phone.replace(/\D/g, '') : '';
             if (cleanPhone.startsWith('01')) {
@@ -656,6 +634,5 @@ function renderNearestMatches() {
             return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
         }
     </script>
- 
 </body>
 </html>
