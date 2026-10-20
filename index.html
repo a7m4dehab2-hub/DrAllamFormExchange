@@ -442,16 +442,17 @@
 
                     if (idxACurrent === -1 || idxADesired === -1 || idxBCurrent === -1 || idxBDesired === -1) continue;
 
-                    const diffA = Math.abs(idxACurrent - idxBDesired);
-                    const diffB = Math.abs(idxBCurrent - idxADesired);
-
                     const isExact = (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot);
-                    const isCloseProximity = (diffA <= 4 && diffB <= 4);
 
-                    if (isExact || isCloseProximity) {
+                    // معيار تقارب زمني منطقي ودقيق
+                    const crossDiff1 = Math.abs(idxACurrent - idxBCurrent);
+                    const crossDiff2 = Math.abs(idxADesired - idxBDesired);
+                    const isLogicalProximity = (crossDiff1 <= 2 || crossDiff2 <= 2) && (Math.abs(idxACurrent - idxBDesired) <= 3 || Math.abs(idxBCurrent - idxADesired) <= 3);
+
+                    if (isExact || isLogicalProximity) {
                         matchesPairs.push({
                             type: isExact ? 'exact' : 'proximity',
-                            score: diffA + diffB,
+                            score: crossDiff1 + crossDiff2,
                             a: reqA,
                             b: reqB
                         });
