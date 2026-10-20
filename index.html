@@ -131,14 +131,33 @@
                         <span id="requestsCount" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full">0 طلب</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="space-y-2">
+                        <!-- Search by name -->
                         <div class="relative">
                             <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
                             <input type="text" id="searchInput" oninput="renderRequests()" placeholder="بحث باسم الطالب..." class="w-full pr-8 pl-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500">
                         </div>
-                        <select id="filterSlot" onchange="renderRequests()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500 bg-white truncate">
-                            <option value="">جميع المواعيد المسجلة</option>
-                        </select>
+
+                        <!-- Smart Filters by Day and Time (Independent of groups) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <select id="filterCurrentDay" onchange="renderRequests()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500 bg-white">
+                                <option value="">📅 كل الأيام</option>
+                                <option value="الاربعاء 21/10 والثلاثاء 27/10">الاربعاء 21/10 والثلاثاء 27/10</option>
+                                <option value="السبت 24/10 والاربعاء 28/10">السبت 24/10 والاربعاء 28/10</option>
+                                <option value="الاحد 25/10 والخميس 29/10">الاحد 25/10 والخميس 29/10</option>
+                                <option value="الاثنين 26/10 والسبت 31/10">الاثنين 26/10 والسبت 31/10</option>
+                            </select>
+
+                            <select id="filterCurrentTime" onchange="renderRequests()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500 bg-white">
+                                <option value="">⏰ كل الساعات</option>
+                                <option value="7 ص">7 ص</option>
+                                <option value="8:30 ص">8:30 ص</option>
+                                <option value="10 ص">10 ص</option>
+                                <option value="12 م">12 م</option>
+                                <option value="1:30 م">1:30 م</option>
+                                <option value="3 م">3 م</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -153,34 +172,12 @@
 
             <!-- Tab 2 Content: Nearest / Smart Suggestions -->
             <div id="tabNearestContent" class="hidden space-y-4">
-                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 space-y-2.5">
-                    <div class="font-bold flex items-center gap-1.5 text-amber-800 text-sm">
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-950 space-y-2">
+                    <div class="font-bold flex items-center gap-1.5 text-amber-900 text-sm">
                         <i class="fa-solid fa-lightbulb text-amber-500"></i> عن التبديل المتقاطع (Cross Swap)
                     </div>
-                    <p class="leading-relaxed">فلترة المقترحات حسب اليوم أو الساعة المطلوبة (بغض النظر عن رقم المجموعة A أو B):</p>
-                    
-                    <!-- Advanced Filter for Nearest Suggestions -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <select id="filterDesiredDay" onchange="renderNearestMatches()" class="w-full px-3 py-2 text-xs border border-amber-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-white font-semibold text-amber-900">
-                            <option value="">📅 كل الأيام (بدون فلترة)</option>
-                            <option value="الاربعاء 21/10 والثلاثاء 27/10">الاربعاء 21/10 والثلاثاء 27/10</option>
-                            <option value="السبت 24/10 والاربعاء 28/10">السبت 24/10 والاربعاء 28/10</option>
-                            <option value="الاحد 25/10 والخميس 29/10">الاحد 25/10 والخميس 29/10</option>
-                            <option value="الاثنين 26/10 والسبت 31/10">الاثنين 26/10 والسبت 31/10</option>
-                        </select>
-
-                        <select id="filterDesiredTime" onchange="renderNearestMatches()" class="w-full px-3 py-2 text-xs border border-amber-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-white font-semibold text-amber-900">
-                            <option value="">⏰ كل الساعات (بدون فلترة)</option>
-                            <option value="7 ص">7 ص</option>
-                            <option value="8:30 ص">8:30 ص</option>
-                            <option value="10 ص">10 ص</option>
-                            <option value="12 م">12 م</option>
-                            <option value="1:30 م">1:30 م</option>
-                            <option value="3 م">3 م</option>
-                        </select>
-                    </div>
+                    <p class="leading-relaxed">اقتراحات تعتمد على تكامل الرغبات والمواعيد الحالية بين الطلبة بشكل متبادل.</p>
                 </div>
-
                 <div id="nearestMatchesList" class="space-y-3">
                     <!-- Dynamically populated -->
                 </div>
@@ -227,12 +224,10 @@
         function populateDropdowns() {
             const currentSelect = document.getElementById('currentSlot');
             const desiredSelect = document.getElementById('desiredSlot');
-            const filterSelect = document.getElementById('filterSlot');
 
             availableSlots.forEach(slot => {
                 currentSelect.appendChild(new Option(slot, slot));
                 desiredSelect.appendChild(new Option(slot, slot));
-                filterSelect.appendChild(new Option(slot, slot));
             });
         }
 
@@ -419,7 +414,6 @@
             renderNearestMatches();
         }
 
-        // دالة مساعدة لتحويل نص الميعاد إلى رقم تسلسلي زمني دقيق للمقارنة والتقارب
         function getSlotIndex(slotString) {
             if (!slotString) return -1;
             const dayPatterns = [
@@ -454,8 +448,6 @@
 
         function renderNearestMatches() {
             const container = document.getElementById('nearestMatchesList');
-            const selectedDayFilter = document.getElementById('filterDesiredDay').value;
-            const selectedTimeFilter = document.getElementById('filterDesiredTime').value;
             const matchesPairs = [];
             const processedIds = new Set();
 
@@ -472,13 +464,9 @@
 
                     if (idxACurrent === -1 || idxADesired === -1 || idxBCurrent === -1 || idxBDesired === -1) continue;
 
-                    // 1. التطابق التام 100%
                     const isExact = (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot);
-
-                    // 2. معيار التبديل المتقاطع النقي الصارم (Cross Swap)
                     const crossDiff1 = Math.abs(idxADesired - idxBCurrent);
                     const crossDiff2 = Math.abs(idxBDesired - idxACurrent);
-
                     const isStrictCrossSwap = (crossDiff1 <= 1 && crossDiff2 <= 1) && !isExact;
 
                     if (isExact || isStrictCrossSwap) {
@@ -494,34 +482,20 @@
                 }
             }
 
-            // تطبيق فلاتر اليوم والساعة (مع تجاهل فرق المجموعات A و B)
-            let filteredPairs = matchesPairs;
-            if (selectedDayFilter || selectedTimeFilter) {
-                filteredPairs = matchesPairs.filter(match => {
-                    const matchDayA = match.a.desiredSlot;
-                    const matchDayB = match.b.desiredSlot;
+            matchesPairs.sort((x, y) => x.score - y.score);
 
-                    const matchesDay = !selectedDayFilter || matchDayA.includes(selectedDayFilter) || matchDayB.includes(selectedDayFilter);
-                    const matchesTime = !selectedTimeFilter || matchDayA.includes(selectedTimeFilter) || matchDayB.includes(selectedTimeFilter);
-
-                    return matchesDay && matchesTime;
-                });
-            }
-
-            filteredPairs.sort((x, y) => x.score - y.score);
-
-            if (filteredPairs.length === 0) {
+            if (matchesPairs.length === 0) {
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
                         <i class="fa-solid fa-cloud-moon text-3xl mb-1 text-slate-300"></i>
-                        <p class="font-semibold">لا توجد اقتراحات مطابقة للفلاتر المحددة حالياً.</p>
-                        <p class="text-[11px] text-slate-400">جرب إعادة ضبط الفلاتر لعرض كافة المقترحات!</p>
+                        <p class="font-semibold">لا توجد اقتراحات لتبديل متقاطع حالياً.</p>
+                        <p class="text-[11px] text-slate-400">ستظهر مقترحات التبديل المتقاطع هنا فور تكامل رغبات الطلبة!</p>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = filteredPairs.map(match => {
+            container.innerHTML = matchesPairs.map(match => {
                 const a = match.a;
                 const b = match.b;
                 const isExact = match.type === 'exact';
@@ -564,7 +538,8 @@
 
         function renderRequests() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filterSlot = document.getElementById('filterSlot').value;
+            const filterDay = document.getElementById('filterCurrentDay').value;
+            const filterTime = document.getElementById('filterCurrentTime').value;
             const container = document.getElementById('requestsList');
             const countLabel = document.getElementById('requestsCount');
 
@@ -616,10 +591,17 @@
                 smartContainer.classList.add('hidden');
             }
 
+            // فلترة ذكية: تبحث في الميعاد الحالي أو الميعاد المطلوب لضمان ظهور أي طالب يملك أو يريد الساعة المحددة
             let filtered = requests.filter(req => {
                 const matchesName = req.name && req.name.toLowerCase().includes(searchTerm);
-                const matchesSlot = !filterSlot || req.currentSlot === filterSlot || req.desiredSlot === filterSlot;
-                return matchesName && matchesSlot;
+                
+                const cur = req.currentSlot || '';
+                const des = req.desiredSlot || '';
+
+                const matchesDay = !filterDay || cur.includes(filterDay) || des.includes(filterDay);
+                const matchesTime = !filterTime || cur.includes(filterTime) || des.includes(filterTime);
+
+                return matchesName && matchesDay && matchesTime;
             });
 
             countLabel.textContent = `${filtered.length} طلب`;
@@ -628,8 +610,8 @@
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
                         <i class="fa-regular fa-folder-open text-3xl mb-1 text-slate-300"></i>
-                        <p class="font-semibold">لا توجد طلبات تبديل مسجلة حالياً.</p>
-                        <p class="text-[11px] text-slate-400">سجّل أول طلب من النموذج للبدء!</p>
+                        <p class="font-semibold">لا توجد طلبات تبديل مطابقة للفلتر المحدد.</p>
+                        <p class="text-[11px] text-slate-400">جرب تغيير خيارات الفلتر أو البحث!</p>
                     </div>
                 `;
                 return;
