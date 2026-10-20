@@ -131,32 +131,57 @@
                         <span id="requestsCount" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full">0 طلب</span>
                     </div>
                     
-                    <div class="space-y-2">
+                    <div class="space-y-2.5">
                         <!-- Search by name -->
                         <div class="relative">
                             <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
                             <input type="text" id="searchInput" oninput="renderRequests()" placeholder="بحث باسم الطالب..." class="w-full pr-8 pl-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500">
                         </div>
 
-                        <!-- Smart Filters by Day and Time (Independent of groups) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <select id="filterCurrentDay" onchange="renderRequests()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500 bg-white">
-                                <option value="">📅 كل الأيام</option>
-                                <option value="الاربعاء 21/10 والثلاثاء 27/10">الاربعاء 21/10 والثلاثاء 27/10</option>
-                                <option value="السبت 24/10 والاربعاء 28/10">السبت 24/10 والاربعاء 28/10</option>
-                                <option value="الاحد 25/10 والخميس 29/10">الاحد 25/10 والخميس 29/10</option>
-                                <option value="الاثنين 26/10 والسبت 31/10">الاثنين 26/10 والسبت 31/10</option>
-                            </select>
+                        <!-- Filter 1: Desired Slot Filter (فلتر ما يطلبه الطلاب الآخرون - ليتوافق مع ميعادك الحالي) -->
+                        <div class="bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100 space-y-2">
+                            <label class="block text-[11px] font-bold text-indigo-900">🎯 فلتر حسب ميعاد "الرغبة" (ابحث عمن يريد ميعاداً معيناً):</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <select id="filterDesiredDay" onchange="renderRequests()" class="w-full px-3 py-1.5 text-xs border border-indigo-200 rounded-lg outline-none bg-white">
+                                    <option value="">📅 كل الأيام (مطلوب)</option>
+                                    <option value="الاربعاء 21/10 والثلاثاء 27/10">الاربعاء 21/10 والثلاثاء 27/10</option>
+                                    <option value="السبت 24/10 والاربعاء 28/10">السبت 24/10 والاربعاء 28/10</option>
+                                    <option value="الاحد 25/10 والخميس 29/10">الاحد 25/10 والخميس 29/10</option>
+                                    <option value="الاثنين 26/10 والسبت 31/10">الاثنين 26/10 والسبت 31/10</option>
+                                </select>
+                                <select id="filterDesiredTime" onchange="renderRequests()" class="w-full px-3 py-1.5 text-xs border border-indigo-200 rounded-lg outline-none bg-white">
+                                    <option value="">⏰ كل الساعات (مطلوب)</option>
+                                    <option value="7 ص">7 ص</option>
+                                    <option value="8:30 ص">8:30 ص</option>
+                                    <option value="10 ص">10 ص</option>
+                                    <option value="12 م">12 م</option>
+                                    <option value="1:30 م">1:30 م</option>
+                                    <option value="3 م">3 م</option>
+                                </select>
+                            </div>
+                        </div>
 
-                            <select id="filterCurrentTime" onchange="renderRequests()" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500 bg-white">
-                                <option value="">⏰ كل الساعات</option>
-                                <option value="7 ص">7 ص</option>
-                                <option value="8:30 ص">8:30 ص</option>
-                                <option value="10 ص">10 ص</option>
-                                <option value="12 م">12 م</option>
-                                <option value="1:30 م">1:30 م</option>
-                                <option value="3 م">3 م</option>
-                            </select>
+                        <!-- Filter 2: Current Slot Filter (فلتر الميعاد الحالي للطلاب المسجلين) -->
+                        <div class="bg-rose-50/60 p-2.5 rounded-xl border border-rose-100 space-y-2">
+                            <label class="block text-[11px] font-bold text-rose-900">⏰ فلتر حسب الميعاد "الحالي" للطلاب (ابحث داخل ما يملكه الطلاب):</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <select id="filterCurrentDay" onchange="renderRequests()" class="w-full px-3 py-1.5 text-xs border border-rose-200 rounded-lg outline-none bg-white">
+                                    <option value="">📅 كل الأيام (حالي)</option>
+                                    <option value="الاربعاء 21/10 والثلاثاء 27/10">الاربعاء 21/10 والثلاثاء 27/10</option>
+                                    <option value="السبت 24/10 والاربعاء 28/10">السبت 24/10 والاربعاء 28/10</option>
+                                    <option value="الاحد 25/10 والخميس 29/10">الاحد 25/10 والخميس 29/10</option>
+                                    <option value="الاثنين 26/10 والسبت 31/10">الاثنين 26/10 والسبت 31/10</option>
+                                </select>
+                                <select id="filterCurrentTime" onchange="renderRequests()" class="w-full px-3 py-1.5 text-xs border border-rose-200 rounded-lg outline-none bg-white">
+                                    <option value="">⏰ كل الساعات (حالي)</option>
+                                    <option value="7 ص">7 ص</option>
+                                    <option value="8:30 ص">8:30 ص</option>
+                                    <option value="10 ص">10 ص</option>
+                                    <option value="12 م">12 م</option>
+                                    <option value="1:30 م">1:30 م</option>
+                                    <option value="3 م">3 م</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -538,8 +563,11 @@
 
         function renderRequests() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filterDay = document.getElementById('filterCurrentDay').value;
-            const filterTime = document.getElementById('filterCurrentTime').value;
+            const filterDesiredDay = document.getElementById('filterDesiredDay').value;
+            const filterDesiredTime = document.getElementById('filterDesiredTime').value;
+            const filterCurrentDay = document.getElementById('filterCurrentDay').value;
+            const filterCurrentTime = document.getElementById('filterCurrentTime').value;
+
             const container = document.getElementById('requestsList');
             const countLabel = document.getElementById('requestsCount');
 
@@ -591,17 +619,22 @@
                 smartContainer.classList.add('hidden');
             }
 
-            // فلترة ذكية: تبحث في الميعاد الحالي أو الميعاد المطلوب لضمان ظهور أي طالب يملك أو يريد الساعة المحددة
+            // الفلترة المنفصلة الدقيقة بناءً على رغبة الطلاب أو ميعادهم الحالي (مع دعم الفلترة باليوم فقط، الساعة فقط، أو كلاهما)
             let filtered = requests.filter(req => {
                 const matchesName = req.name && req.name.toLowerCase().includes(searchTerm);
                 
                 const cur = req.currentSlot || '';
                 const des = req.desiredSlot || '';
 
-                const matchesDay = !filterDay || cur.includes(filterDay) || des.includes(filterDay);
-                const matchesTime = !filterTime || cur.includes(filterTime) || des.includes(filterTime);
+                // فلاتر الميعاد المطلوب (Desired Slot)
+                const matchesDesiredDay = !filterDesiredDay || des.includes(filterDesiredDay);
+                const matchesDesiredTime = !filterDesiredTime || des.includes(filterDesiredTime);
 
-                return matchesName && matchesDay && matchesTime;
+                // فلاتر الميعاد الحالي (Current Slot)
+                const matchesCurrentDay = !filterCurrentDay || cur.includes(filterCurrentDay);
+                const matchesCurrentTime = !filterCurrentTime || cur.includes(filterCurrentTime);
+
+                return matchesName && matchesDesiredDay && matchesDesiredTime && matchesCurrentDay && matchesCurrentTime;
             });
 
             countLabel.textContent = `${filtered.length} طلب`;
@@ -610,8 +643,8 @@
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
                         <i class="fa-regular fa-folder-open text-3xl mb-1 text-slate-300"></i>
-                        <p class="font-semibold">لا توجد طلبات تبديل مطابقة للفلتر المحدد.</p>
-                        <p class="text-[11px] text-slate-400">جرب تغيير خيارات الفلتر أو البحث!</p>
+                        <p class="font-semibold">لا توجد طلبات تبديل مطابقة للفلاتر المحددة.</p>
+                        <p class="text-[11px] text-slate-400">جرب تعديل خيارات الفلتر أو إعادة ضبطها!</p>
                     </div>
                 `;
                 return;
