@@ -108,7 +108,7 @@
                 </button>
                 <button onclick="switchTab('nearest')" id="tabNearestBtn" class="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-                    <span>اقترحات التبديل المتقاطع 💡</span>
+                    <span>اقتراحات التبديل المتقاطع 💡</span>
                 </button>
             </div>
 
@@ -153,12 +153,34 @@
 
             <!-- Tab 2 Content: Nearest / Smart Suggestions -->
             <div id="tabNearestContent" class="hidden space-y-4">
-                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 leading-relaxed">
-                    <div class="font-bold flex items-center gap-1.5 text-amber-800 text-sm mb-1">
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 space-y-2.5">
+                    <div class="font-bold flex items-center gap-1.5 text-amber-800 text-sm">
                         <i class="fa-solid fa-lightbulb text-amber-500"></i> عن التبديل المتقاطع (Cross Swap)
                     </div>
-                    اقتراح يعتمد كلياً على تكامل الرغبات والمواعيد الحالية بين طالبين بشكل متبادل وقريب جداً.
+                    <p class="leading-relaxed">فلترة المقترحات حسب اليوم أو الساعة المطلوبة (بغض النظر عن رقم المجموعة A أو B):</p>
+                    
+                    <!-- Advanced Filter for Nearest Suggestions -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select id="filterDesiredDay" onchange="renderNearestMatches()" class="w-full px-3 py-2 text-xs border border-amber-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-white font-semibold text-amber-900">
+                            <option value="">📅 كل الأيام (بدون فلترة)</option>
+                            <option value="الاربعاء 21/10 والثلاثاء 27/10">الاربعاء 21/10 والثلاثاء 27/10</option>
+                            <option value="السبت 24/10 والاربعاء 28/10">السبت 24/10 والاربعاء 28/10</option>
+                            <option value="الاحد 25/10 والخميس 29/10">الاحد 25/10 والخميس 29/10</option>
+                            <option value="الاثنين 26/10 والسبت 31/10">الاثنين 26/10 والسبت 31/10</option>
+                        </select>
+
+                        <select id="filterDesiredTime" onchange="renderNearestMatches()" class="w-full px-3 py-2 text-xs border border-amber-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-white font-semibold text-amber-900">
+                            <option value="">⏰ كل الساعات (بدون فلترة)</option>
+                            <option value="7 ص">7 ص</option>
+                            <option value="8:30 ص">8:30 ص</option>
+                            <option value="10 ص">10 ص</option>
+                            <option value="12 م">12 م</option>
+                            <option value="1:30 م">1:30 م</option>
+                            <option value="3 م">3 م</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div id="nearestMatchesList" class="space-y-3">
                     <!-- Dynamically populated -->
                 </div>
@@ -432,6 +454,8 @@
 
         function renderNearestMatches() {
             const container = document.getElementById('nearestMatchesList');
+            const selectedDayFilter = document.getElementById('filterDesiredDay').value;
+            const selectedTimeFilter = document.getElementById('filterDesiredTime').value;
             const matchesPairs = [];
             const processedIds = new Set();
 
@@ -451,8 +475,7 @@
                     // 1. التطابق التام 100%
                     const isExact = (reqA.currentSlot === reqB.desiredSlot && reqA.desiredSlot === reqB.currentSlot);
 
-                    // 2. معيار التبديل المتقاطع النقي الصارم (Cross Swap):
-                    // رغبة الطالبة الأولى قريبة جداً من ميعاد الطالبة الثانية الحالي (بفارق خطوة واحدة أو صفر)، والعكس صحيح
+                    // 2. معيار التبديل المتقاطع النقي الصارم (Cross Swap)
                     const crossDiff1 = Math.abs(idxADesired - idxBCurrent);
                     const crossDiff2 = Math.abs(idxBDesired - idxACurrent);
 
@@ -471,20 +494,34 @@
                 }
             }
 
-            matchesPairs.sort((x, y) => x.score - y.score);
+            // تطبيق فلاتر اليوم والساعة (مع تجاهل فرق المجموعات A و B)
+            let filteredPairs = matchesPairs;
+            if (selectedDayFilter || selectedTimeFilter) {
+                filteredPairs = matchesPairs.filter(match => {
+                    const matchDayA = match.a.desiredSlot;
+                    const matchDayB = match.b.desiredSlot;
 
-            if (matchesPairs.length === 0) {
+                    const matchesDay = !selectedDayFilter || matchDayA.includes(selectedDayFilter) || matchDayB.includes(selectedDayFilter);
+                    const matchesTime = !selectedTimeFilter || matchDayA.includes(selectedTimeFilter) || matchDayB.includes(selectedTimeFilter);
+
+                    return matchesDay && matchesTime;
+                });
+            }
+
+            filteredPairs.sort((x, y) => x.score - y.score);
+
+            if (filteredPairs.length === 0) {
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-2xl text-center text-slate-400 border border-slate-200 text-xs space-y-1">
                         <i class="fa-solid fa-cloud-moon text-3xl mb-1 text-slate-300"></i>
-                        <p class="font-semibold">لا توجد اقتراحات لتبديل متقاطع حالياً.</p>
-                        <p class="text-[11px] text-slate-400">ستظهر مقترحات التبديل المتقاطع هنا فور تكامل رغبات الطلبة!</p>
+                        <p class="font-semibold">لا توجد اقتراحات مطابقة للفلاتر المحددة حالياً.</p>
+                        <p class="text-[11px] text-slate-400">جرب إعادة ضبط الفلاتر لعرض كافة المقترحات!</p>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = matchesPairs.map(match => {
+            container.innerHTML = filteredPairs.map(match => {
                 const a = match.a;
                 const b = match.b;
                 const isExact = match.type === 'exact';
