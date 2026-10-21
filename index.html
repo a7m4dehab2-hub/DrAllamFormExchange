@@ -138,7 +138,7 @@
                             <input type="text" id="searchInput" oninput="renderRequests()" placeholder="بحث باسم الطالب..." class="w-full pr-8 pl-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-indigo-500">
                         </div>
 
-                        <!-- Filter 1: Desired Slot Filter (فلتر ما يطلبه الطلاب الآخرون - ليتوافق مع ميعادك الحالي) -->
+                        <!-- Filter 1: Desired Slot Filter -->
                         <div class="bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100 space-y-2">
                             <label class="block text-[11px] font-bold text-indigo-900">🎯 فلتر حسب الموعد المطلوب (ابحث عمن يريد ميعاداً معيناً):</label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -161,7 +161,7 @@
                             </div>
                         </div>
 
-                        <!-- Filter 2: Current Slot Filter (فلتر الميعاد الحالي للطلاب المسجلين) -->
+                        <!-- Filter 2: Current Slot Filter -->
                         <div class="bg-rose-50/60 p-2.5 rounded-xl border border-rose-100 space-y-2">
                             <label class="block text-[11px] font-bold text-rose-900">⏰ فلتر حسب الميعاد "الحالي" للطلاب (ابحث داخل ما يملكه الطلاب):</label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -217,7 +217,7 @@
 
     <!-- Application Script -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzWglB6uK7zsJI4ZJ4YClw_fVhoVOr5mUNhqcU1E5HhBcsacuyd7xuk225AjXrIz2A/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxrrr1pKi2OXrrMHM1QXoRemNbdo8UKAOIgEjifoNezegJxRek3miiPHVkxMtSs6uQ9/exec";
         const SPREADSHEET_ID = "13xPGid5GO_RizTp-ODDu7uSkoGsnJgE27ZOiLrtpBho";
 
         const daysData = [
@@ -401,12 +401,12 @@
             const exactMatch = requests.find(r => r.currentSlot === desired && r.desiredSlot === current);
 
             if (exactMatch) {
-                const waLink = generateWhatsAppLink(exactMatch.phone, exactMatch.name, current, desired);
+                const waClickAttr = generateWhatsAppClickAttr(exactMatch.phone, exactMatch.name, current, desired);
                 details.innerHTML = `
                     <p class="mb-2 font-bold text-emerald-800">✅ تطابق تام 100% مع الطالب: ${escapeHtml(exactMatch.name)}</p>
-                    <a href="${waLink}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg text-xs">
+                    <button type="button" ${waClickAttr} class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg text-xs cursor-pointer">
                         <i class="fa-brands fa-whatsapp text-sm"></i> تواصل مع ${escapeHtml(exactMatch.name)} فوراً
-                    </a>
+                    </button>
                 `;
                 box.classList.remove('hidden');
                 return;
@@ -421,12 +421,12 @@
             });
 
             if (nearestMatch) {
-                const waLink = generateWhatsAppLink(nearestMatch.phone, nearestMatch.name, current, desired);
+                const waClickAttr = generateWhatsAppClickAttr(nearestMatch.phone, nearestMatch.name, current, desired);
                 details.innerHTML = `
                     <p class="mb-2 font-bold text-amber-800">💡 وجدنا تبديلاً متقاطعاً مع ${escapeHtml(nearestMatch.name)} (راجع تبويب الاقتراحات):</p>
-                    <a href="${waLink}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-amber-600 text-white font-bold px-3 py-2 rounded-lg text-xs">
+                    <button type="button" ${waClickAttr} class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-amber-600 text-white font-bold px-3 py-2 rounded-lg text-xs cursor-pointer">
                         <i class="fa-brands fa-whatsapp text-sm"></i> تواصل مع ${escapeHtml(nearestMatch.name)} للتنسيق
-                    </a>
+                    </button>
                 `;
                 box.classList.remove('hidden');
             } else {
@@ -528,8 +528,8 @@
                 const badgeColor = isExact ? 'bg-emerald-600' : 'bg-amber-600';
                 const cardBg = isExact ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50/80 border-amber-300';
 
-                const waA = generateWhatsAppLink(a.phone, a.name, b.currentSlot, b.desiredSlot);
-                const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot);
+                const waAAttr = generateWhatsAppClickAttr(a.phone, a.name, b.currentSlot, b.desiredSlot);
+                const waBAttr = generateWhatsAppClickAttr(b.phone, b.name, a.currentSlot, a.desiredSlot);
 
                 return `
                     <div class="${cardBg} border-2 p-3.5 sm:p-4 rounded-2xl shadow-sm text-xs relative">
@@ -541,9 +541,9 @@
                                     <div class="text-slate-600 text-[11px] leading-tight mb-1">معاه: <span class="font-semibold text-rose-700">${escapeHtml(a.currentSlot)}</span></div>
                                     <div class="text-slate-600 text-[11px] leading-tight mb-2">عايز: <span class="font-semibold text-emerald-700">${escapeHtml(a.desiredSlot)}</span></div>
                                 </div>
-                                <a href="${waA}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all">
+                                <button type="button" ${waAAttr} class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all cursor-pointer">
                                     <i class="fa-brands fa-whatsapp text-sm"></i> واتساب ${escapeHtml(a.name)}
-                                </a>
+                                </button>
                             </div>
                             <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between shadow-xs">
                                 <div>
@@ -551,9 +551,9 @@
                                     <div class="text-slate-600 text-[11px] leading-tight mb-1">معاه: <span class="font-semibold text-rose-700">${escapeHtml(b.currentSlot)}</span></div>
                                     <div class="text-slate-600 text-[11px] leading-tight mb-2">عايز: <span class="font-semibold text-emerald-700">${escapeHtml(b.desiredSlot)}</span></div>
                                 </div>
-                                <a href="${waB}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all">
+                                <button type="button" ${waBAttr} class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition-all cursor-pointer">
                                     <i class="fa-brands fa-whatsapp text-sm"></i> واتساب ${escapeHtml(b.name)}
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -585,8 +585,8 @@
             if (exactMatches.length > 0) {
                 smartContainer.classList.remove('hidden');
                 smartList.innerHTML = exactMatches.map(([a, b]) => {
-                    const waA = generateWhatsAppLink(a.phone, a.name, b.currentSlot, b.desiredSlot);
-                    const waB = generateWhatsAppLink(b.phone, b.name, a.currentSlot, a.desiredSlot);
+                    const waAAttr = generateWhatsAppClickAttr(a.phone, a.name, b.currentSlot, b.desiredSlot);
+                    const waBAttr = generateWhatsAppClickAttr(b.phone, b.name, a.currentSlot, a.desiredSlot);
                     return `
                         <div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-xl shadow-sm text-xs relative">
                             <span class="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">توافق مباشر 100%</span>
@@ -597,9 +597,9 @@
                                         <div class="text-slate-600 text-[11px] mb-1">معاه: <span class="text-rose-700 font-semibold">${escapeHtml(a.currentSlot)}</span></div>
                                         <div class="text-slate-600 text-[11px] mb-2">عايز: <span class="text-emerald-700 font-semibold">${escapeHtml(a.desiredSlot)}</span></div>
                                     </div>
-                                    <a href="${waA}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold px-2 py-1.5 rounded text-[11px]">
+                                    <button type="button" ${waAAttr} class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold px-2 py-1.5 rounded text-[11px] cursor-pointer">
                                         <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(a.name)}
-                                    </a>
+                                    </button>
                                 </div>
                                 <div class="bg-white p-3 rounded-xl border border-emerald-200 flex flex-col justify-between">
                                     <div>
@@ -607,9 +607,9 @@
                                         <div class="text-slate-600 text-[11px] mb-1">معاه: <span class="text-rose-700 font-semibold">${escapeHtml(b.currentSlot)}</span></div>
                                         <div class="text-slate-600 text-[11px] mb-2">عايز: <span class="text-emerald-700 font-semibold">${escapeHtml(b.desiredSlot)}</span></div>
                                     </div>
-                                    <a href="${waB}" target="_blank" class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold px-2 py-1.5 rounded text-[11px]">
+                                    <button type="button" ${waBAttr} class="w-full inline-flex items-center justify-center gap-1 bg-emerald-600 text-white font-bold px-2 py-1.5 rounded text-[11px] cursor-pointer">
                                         <i class="fa-brands fa-whatsapp"></i> واتساب ${escapeHtml(b.name)}
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -619,18 +619,15 @@
                 smartContainer.classList.add('hidden');
             }
 
-            // الفلترة المنفصلة الدقيقة بناءً على رغبة الطلاب أو ميعادهم الحالي (مع دعم الفلترة باليوم فقط، الساعة فقط، أو كلاهما)
             let filtered = requests.filter(req => {
                 const matchesName = req.name && req.name.toLowerCase().includes(searchTerm);
                 
                 const cur = req.currentSlot || '';
                 const des = req.desiredSlot || '';
 
-                // فلاتر الميعاد المطلوب (Desired Slot)
                 const matchesDesiredDay = !filterDesiredDay || des.includes(filterDesiredDay);
                 const matchesDesiredTime = !filterDesiredTime || des.includes(filterDesiredTime);
 
-                // فلاتر الميعاد الحالي (Current Slot)
                 const matchesCurrentDay = !filterCurrentDay || cur.includes(filterCurrentDay);
                 const matchesCurrentTime = !filterCurrentTime || cur.includes(filterCurrentTime);
 
@@ -651,7 +648,7 @@
             }
 
             container.innerHTML = filtered.map(req => {
-                const waLink = generateWhatsAppLink(req.phone, req.name, req.desiredSlot, req.currentSlot);
+                const waClickAttr = generateWhatsAppClickAttr(req.phone, req.name, req.desiredSlot, req.currentSlot);
                 return `
                     <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5 text-xs">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -674,22 +671,38 @@
                         ${req.notes ? `<p class="text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[11px]"><i class="fa-solid fa-circle-info ml-1 text-indigo-500"></i>${escapeHtml(req.notes)}</p>` : ''}
 
                         <div class="pt-1">
-                            <a href="${waLink}" target="_blank" class="w-full inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold py-2.5 rounded-xl transition-colors shadow-sm text-xs">
+                            <button type="button" ${waClickAttr} class="w-full inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-bold py-2.5 rounded-xl transition-colors shadow-sm text-xs cursor-pointer">
                                 <i class="fa-brands fa-whatsapp text-sm"></i> تواصل عبر الواتساب
-                            </a>
+                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function generateWhatsAppLink(phone, name, myCurrent, myDesired) {
+        function trackWhatsAppClick(name, phone) {
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'track_whatsapp', name: name, phone: phone })
+            }).catch(err => console.warn('Tracking error:', err));
+        }
+
+        function openWhatsApp(phone, message, name) {
+            trackWhatsAppClick(name, phone);
+            const waUrl = `https://wa.me/${phone}?text=${message}`;
+            window.open(waUrl, '_blank');
+        }
+
+        function generateWhatsAppClickAttr(phone, name, myCurrent, myDesired) {
             let cleanPhone = phone ? phone.replace(/\D/g, '') : '';
             if (cleanPhone.startsWith('01')) {
                 cleanPhone = '2' + cleanPhone;
             }
-            const message = encodeURIComponent(`السلام عليكم يا ${name}، شفت طلبك على منصة تبديل المواعيد. أنا حابب أبدل معاك الميعاد (${myCurrent}) بميعادك (${myDesired}). هل يناسبك؟`);
-            return `https://wa.me/${cleanPhone}?text=${message}`;
+            const msgText = `السلام عليكم يا ${name}، شفت طلبك على منصة تبديل المواعيد. أنا حابب أبدل معاك الميعاد (${myCurrent}) بميعادك (${myDesired}). هل يناسبك؟`;
+            const encodedMsg = encodeURIComponent(msgText);
+            const safeName = escapeHtml(name).replace(/'/g, "\\'");
+            return `onclick="openWhatsApp('${cleanPhone}', '${encodedMsg}', '${safeName}')"`;
         }
 
         function escapeHtml(str) {
